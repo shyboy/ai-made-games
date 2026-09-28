@@ -56,11 +56,11 @@
 | Clauding · 动词猎人（抓 Claude Code 转圈动词，零依赖，MIT；界面英文，帮助含中文） | [BIGBALLON](https://github.com/BIGBALLON) | [开始游戏](https://bigballon.github.io/clauding_hacker/) | [原仓库](https://github.com/BIGBALLON/clauding_hacker) |
 | Clawd Arcade · 螃蟹街机（中英双语像素街机合集） | [kirenath](https://github.com/kirenath) | [开始游戏](https://kirenath.github.io/clawd-arcade/) | [原仓库](https://github.com/kirenath/clawd-arcade) |
 | hollowlullaby 小游戏合集（中文 vibe-coding 的 WASM 作品集） | [maweis](https://github.com/maweis1981) | [开始游戏](https://maweis.com/rust_bevy_lua_game/) | [原仓库](https://github.com/maweis1981/rust_bevy_lua_game) |
-| SWARM · 虫潮生存（单文件，玩法接近 Vampire Survivors，MIT；试玩走 jsDelivr） | [Nerabwyn](https://github.com/Nerabwyn) | [开始游戏](https://cdn.jsdelivr.net/gh/Nerabwyn/swarm@main/index.html) | [原仓库](https://github.com/Nerabwyn/swarm) |
+| SWARM · 虫潮生存（单文件，玩法接近 Vampire Survivors，MIT；试玩走 raw.githack） | [Nerabwyn](https://github.com/Nerabwyn) | [开始游戏](https://rawcdn.githack.com/Nerabwyn/swarm/main/index.html) | [原仓库](https://github.com/Nerabwyn/swarm) |
 
 《穿越火线》《QQ 飞车》《黑神话：悟空》《天际5》《Spy Hunter》《SWARM》的相关条目是非官方同人或致敬作品，与原游戏厂商无关。
 
-《修仙掌门生涯》的作者提示首次加载可能较慢。《天际5》目前需要按原仓库说明在本地运行，尚无已核实的在线试玩地址。《街机口袋》同样没有稳定的在线地址，需要本机安装 Node.js 20 或更新版本后，按仓库说明运行 `node server.mjs`。《归零协议》是单文件文字局，一局大约二三十分钟。《晴湾防线无尽版》《棱镜交火》《象棋》来自同一作者的 AI 小游戏站，无尽版比剧情版更难。《100 Games》《LittleJS Arcade》《EPOCH》和两则 Spy Hunter 对照试玩的界面是英文；lemire.me 偶发人机验证。《Clauding》界面为英文，帮助手册含简体中文。《Clawd Arcade》为中英双语。《hollowlullaby》为中文作品集。《SWARM》的 GitHub Pages 返回 404，在线试玩使用 jsDelivr 上的单文件页面。以上链接于 2026-09-28 检查可访问；游戏内容及后续可用性以原作者网站为准。
+《修仙掌门生涯》的作者提示首次加载可能较慢。《天际5》目前需要按原仓库说明在本地运行，尚无已核实的在线试玩地址。《街机口袋》同样没有稳定的在线地址，需要本机安装 Node.js 20 或更新版本后，按仓库说明运行 `node server.mjs`。《归零协议》是单文件文字局，一局大约二三十分钟。《晴湾防线无尽版》《棱镜交火》《象棋》来自同一作者的 AI 小游戏站，无尽版比剧情版更难。《100 Games》《LittleJS Arcade》《EPOCH》和两则 Spy Hunter 对照试玩的界面是英文；lemire.me 偶发人机验证。《Clauding》界面为英文，帮助手册含简体中文。《Clawd Arcade》为中英双语。《hollowlullaby》为中文作品集。《SWARM》的 GitHub Pages 返回 404，在线试玩使用 raw.githack 上的单文件页面。以上链接于 2026-09-28 检查可访问；游戏内容及后续可用性以原作者网站为准。
 
 ## 署名与使用
 
