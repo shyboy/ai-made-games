@@ -29,16 +29,26 @@
 
 ## 外部游戏
 
-这些作品只收录入口和出处，游戏代码、素材仍保留在原作者处。
+这些作品只收录入口和出处，游戏代码、素材仍保留在原作者处。AI 参与制作的信息依据创作者的公开说明。
 
-| 游戏 | 作者／发布者 | 在线游玩 | 出处 |
+| 游戏 | 作者／发布者 | 试玩／获取 | 出处 |
 | --- | --- | --- | --- |
 | 鹈鹕骑自行车 | [riba2534](https://github.com/riba2534) | [开始游戏](https://claude-opus-5-5.riba2534.cn/) | [Claude Opus 5.5 Demo](https://github.com/riba2534/claude-opus-5-5-demo) |
 | 穿越火线·运输船 | [riba2534](https://github.com/riba2534) | [开始游戏](https://claude-opus-5-5-cf-transport-ship.pages.dev/) | [Claude Opus 5.5 Demo](https://github.com/riba2534/claude-opus-5-5-demo) |
 | QQ 飞车 | [riba2534](https://github.com/riba2534) | [开始游戏](https://claude-opus-5-5-qqfeiche3d.pages.dev/) | [Claude Opus 5.5 Demo](https://github.com/riba2534/claude-opus-5-5-demo) |
 | 天命人·黑风山（《黑神话：悟空》同人） | [oneoyn](https://www.v2ex.com/member/oneoyn) | [开始游戏](https://wukong.cnmwx.com/) | [作者发布帖](https://www.v2ex.com/t/1244710) |
+| 夜潮 Nightide | [defiabell](https://www.v2ex.com/member/defiabell) | [开始游戏](https://defiabell.github.io/nightide/) | [作者发布帖](https://www.v2ex.com/t/1229945) |
+| Color Tiles | [winterscott999](https://www.v2ex.com/member/winterscott999) | [开始游戏](https://colortilesgame.net/) | [作者发布帖](https://www.v2ex.com/t/1228585) |
+| 修仙掌门生涯（Demo） | [aeli](https://www.v2ex.com/member/aeli) | [开始游戏](https://xiuxian.safafish.com/) | [作者发布帖](https://www.v2ex.com/t/1195159) |
+| 晴湾防线 | [iiduce](https://www.v2ex.com/member/iiduce) | [开始游戏](https://tz100.com/zh/games/sunharbor-defense) | [作者发布帖](https://www.v2ex.com/t/1243393) |
+| 星环滚滚 Star Ring Roll | [AI Game Studio / PocketKit](https://www.pokitx.com/zh/html-games/) | [开始游戏](https://www.pokitx.com/zh/html-games/star-ring) | [游戏说明](https://www.pokitx.com/zh/html-games/star-ring) |
+| 起源 Origin | [DFarm6](https://github.com/DFarm6) | [开始游戏](https://dfarm6.github.io/origin-16bit-arpg/) | [原仓库](https://github.com/DFarm6/origin-16bit-arpg) |
+| Parti 联机小游戏合集 | [wheelg](https://www.v2ex.com/member/wheelg) | [打开游戏平台](https://parti.linkai.work/) | [作者发布帖](https://edge.v2ex.com/t/1227945) |
+| 天际5（需本地运行） | [zexadev](https://github.com/zexadev) | [下载及运行说明](https://github.com/zexadev/tianjie5#快速开始) | [原仓库](https://github.com/zexadev/tianjie5) |
 
-《穿越火线》《QQ 飞车》《黑神话：悟空》的相关条目是非官方同人或致敬作品，与原游戏厂商无关。
+《穿越火线》《QQ 飞车》《黑神话：悟空》《天际5》的相关条目是非官方同人或致敬作品，与原游戏厂商无关。
+
+《修仙掌门生涯》的作者提示首次加载可能较慢。《天际5》目前需要按原仓库说明在本地运行，尚无已核实的在线试玩地址。以上新链接于 2026-09-28 检查可访问；游戏内容及后续可用性以原作者网站为准。
 
 ## 署名与使用
 
