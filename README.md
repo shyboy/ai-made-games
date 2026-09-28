@@ -6,7 +6,7 @@
 
 ## 仓库内的游戏
 
-仓库里目前有 13 个可直接打开的 HTML 游戏。其中 6 个由杨老师提供，原作者署名为微信昵称 **朱斌**；收录时只将文件改名为各目录下的 `index.html`，未修改游戏内容。另外 6 个单文件小游戏署名为 **杨老师玩AI · AI 生成**。SWARM · 虫潮生存署名为原作者 **Nerabwyn**（MIT），按原文件收录，未改玩法。下载仓库后，也可以在电脑上直接打开对应文件。
+仓库里目前有 13 个可直接打开的 HTML 游戏。其中 6 个由杨老师提供，原作者署名为微信昵称 **朱斌**；收录时只将文件改名为各目录下的 `index.html`，未修改游戏内容。另外 6 个单文件小游戏署名为 **杨老师玩AI · AI 生成**。SWARM · 虫潮生存署名为原作者 **Nerabwyn**（MIT），玩法未改。下载仓库后，也可以在电脑上直接打开对应文件。
 
 | 游戏 | 作者 | 在线游玩 | 文件 |
 | --- | --- | --- | --- |
@@ -26,7 +26,7 @@
 
 “回到客厅”内置原创测试游戏；导入其他 `.nes` 文件时，请使用自己有权使用的文件。它的内置模拟核心可离线运行，可选的 JSNES 标准核心需要联网加载。
 
-SWARM · 虫潮生存由原作者 Nerabwyn 以 MIT 许可发布（见 [`games/swarm/LICENSE`](games/swarm/LICENSE)），玩法接近 Vampire Survivors，属非官方同人，与原游戏厂商无关。出处：[Nerabwyn/swarm](https://github.com/Nerabwyn/swarm)。
+SWARM · 虫潮生存由原作者 Nerabwyn 以 MIT 许可发布（见 [`games/swarm/LICENSE`](games/swarm/LICENSE)），玩法接近 Vampire Survivors，属非官方同人，与原游戏厂商无关。本仓库托管副本的界面为简体中文，上游原版为英文。出处：[Nerabwyn/swarm](https://github.com/Nerabwyn/swarm)。
 
 ## 外部游戏
 

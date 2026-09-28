@@ -3,22 +3,24 @@
   作者 / Author: Nerabwyn
   来源 / Source: https://github.com/Nerabwyn/swarm
   许可 / License: MIT. Copyright (c) 2026 Nerabwyn.
-  完整许可见同目录 LICENSE。以下玩法与源码未改，取自
+  完整许可见同目录 LICENSE。玩法与数值未改；本托管副本只把玩家可见文字译为简体中文。
+  上游英文原文件：
   https://raw.githubusercontent.com/Nerabwyn/swarm/main/index.html
 -->
 <!doctype html>
+<html lang="zh-CN">
 <meta charset="utf-8">
-<title>SWARM</title>
+<title>SWARM · 虫潮生存</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#0b0d17}
   canvas{display:block;cursor:crosshair}
-  #test{color:#cfd;font:13px/1.6 ui-monospace,Consolas,monospace;padding:20px;white-space:pre}
+  #test{color:#cfd;font:13px/1.6 "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif;padding:20px;white-space:pre}
   /* Native form controls on an HTML overlay, not a canvas-drawn menu: keyboard nav,
      focus rings, screen-reader labels and touch all come free. */
   #panel{position:fixed;top:0;right:0;width:320px;height:100vh;box-sizing:border-box;
     overflow-y:auto;background:#0b0d17;border-left:1px solid #2a3350;color:#dfe;
-    font:13px/1.5 ui-monospace,Consolas,monospace;padding:16px 18px 60px;z-index:10}
+    font:13px/1.5 "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif;padding:16px 18px 60px;z-index:10}
   #panel[hidden]{display:none}
   #panel h2{font-size:13px;margin:0;color:#4ecdc4;letter-spacing:.1em}
   #panel h3{font-size:11px;margin:18px 0 2px;color:#7d89a6;letter-spacing:.12em;
@@ -38,10 +40,10 @@
      buttons -- tab order, Enter/Space activation and focus rings all come free.
      Lower z-index than the panel, so Settings opens on top of the menu. */
   #menu{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;
-    background:rgba(6,8,16,.93);color:#dfe;font:13px/1.6 ui-monospace,Consolas,monospace}
+    background:rgba(6,8,16,.93);color:#dfe;font:13px/1.6 "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif}
   #menu[hidden]{display:none}
   #menu .mwrap{width:min(460px,90vw);text-align:center}
-  #menu h1{font-size:64px;margin:0 0 8px;color:#4ee1d0;letter-spacing:.14em}
+  #menu h1{font-size:52px;margin:0 0 8px;color:#4ee1d0;letter-spacing:.08em}
   #menu .tag{color:#8894ad;margin:0}
   #menu .best{color:#ffd479;margin:14px 0 0;min-height:1.6em}
   #menu .mbtns{display:flex;gap:12px;justify-content:center;margin:20px 0 0}
@@ -56,7 +58,7 @@
   #menu li{margin:4px 0}
 </style>
 <canvas id="c"></canvas>
-<div id="panel" hidden aria-label="Settings and tuning"></div>
+<div id="panel" hidden aria-label="设置与调节"></div>
 <div id="menu" hidden></div>
 <script>
 // ===== SWARM =====
@@ -154,7 +156,7 @@ function bullet(o) {
 }
 var WEAPONS = {
   bolt: {
-    name: 'Bolt', desc: 'Seeking shot at the nearest enemy. Pierces more as it levels.', cd: 0.5, max: 8,
+    name: '追击弹', desc: '锁定最近的敌人。等级越高，穿透越多。', cd: 0.5, max: 8,
     evo: { passive: 'extra', into: 'railgun' },
     fire: function (S, w) {
       var n = nearest(S.player, S.enemies);
@@ -173,7 +175,7 @@ var WEAPONS = {
     }
   },
   spread: {
-    name: 'Scatter', desc: 'Shotgun blast in the way you are moving.', cd: 1.15, max: 8,
+    name: '散射', desc: '朝移动方向打出一片霰弹。', cd: 1.15, max: 8,
     evo: { passive: 'dmg', into: 'flak' },
     fire: function (S, w) {
       var count = 4 + w.lvl + S.stats.extra;
@@ -190,7 +192,7 @@ var WEAPONS = {
   },
   orbit: {
     // ponytail: orbs are ordinary bullets with an orbit param, so they reuse the whole collision path.
-    name: 'Halo', desc: 'Orbs circle you and grind whatever they touch.', cd: 2.4, max: 8,
+    name: '光环', desc: '光球环绕自身，碾碎碰到的一切。', cd: 2.4, max: 8,
     evo: { passive: 'area', into: 'eventhorizon' },
     fire: function (S, w) {
       var count = 2 + Math.floor(w.lvl / 2) + S.stats.extra;
@@ -204,7 +206,7 @@ var WEAPONS = {
     }
   },
   nova: {
-    name: 'Nova', desc: 'Shockwave ring that expands out of you.', cd: 2.8, max: 8,
+    name: '新星', desc: '从身上向外扩张的冲击波环。', cd: 2.8, max: 8,
     evo: { passive: 'cd', into: 'singularity' },
     fire: function (S, w) {
       S.bullets.push(bullet({
@@ -215,7 +217,7 @@ var WEAPONS = {
     }
   },
   whip: {
-    name: 'Lash', desc: 'Wide melee swipe in your facing direction.', cd: 0.95, max: 8,
+    name: '鞭击', desc: '朝面向挥出宽幅近战斩击。', cd: 0.95, max: 8,
     evo: { passive: 'spd', into: 'reaper' },
     fire: function (S, w) {
       var a = Math.atan2(S.player.aim.y, S.player.aim.x), reach = 48 + w.lvl * 5;
@@ -232,8 +234,8 @@ var WEAPONS = {
   // hidden: never offered as a new weapon. max: 1 so they are never offered a level up either.
   // They exist only as the target of an 'evo' card.
   railgun: {
-    name: 'Railgun', hidden: true, max: 1, cd: 0.62,
-    desc: 'BOLT EVOLVED. A lance that punches through the entire screen.',
+    name: '磁轨炮', hidden: true, max: 1, cd: 0.62,
+    desc: '追击弹进化。贯穿全屏的光矛。',
     fire: function (S, w) {
       var n = nearest(S.player, S.enemies); if (!n) return;
       var count = 2 + S.stats.extra;
@@ -249,8 +251,8 @@ var WEAPONS = {
     }
   },
   flak: {
-    name: 'Flak', hidden: true, max: 1, cd: 1.0,
-    desc: 'SCATTER EVOLVED. A wall of piercing shrapnel.',
+    name: '破片弹', hidden: true, max: 1, cd: 1.0,
+    desc: '散射进化。一片可穿透的弹片。',
     fire: function (S, w) {
       var base = Math.atan2(S.player.aim.y, S.player.aim.x);
       for (var i = 0; i < 14 + S.stats.extra * 3; i++) {
@@ -264,8 +266,8 @@ var WEAPONS = {
     }
   },
   eventhorizon: {
-    name: 'Event Horizon', hidden: true, max: 1, cd: 2.2,
-    desc: 'HALO EVOLVED. A wide ring of heavy orbs that shreds anything close.',
+    name: '事件视界', hidden: true, max: 1, cd: 2.2,
+    desc: '光环进化。一圈沉重光球，撕碎近处的一切。',
     fire: function (S, w) {
       var count = 6 + S.stats.extra;
       for (var i = 0; i < count; i++) {
@@ -279,8 +281,8 @@ var WEAPONS = {
     }
   },
   singularity: {
-    name: 'Singularity', hidden: true, max: 1, cd: 2.4,
-    desc: 'NOVA EVOLVED. Twin shockwaves that clear the screen.',
+    name: '奇点', hidden: true, max: 1, cd: 2.4,
+    desc: '新星进化。双重冲击波，清空屏幕。',
     fire: function (S, w) {
       for (var i = 0; i < 2; i++) {
         S.bullets.push(bullet({
@@ -292,8 +294,8 @@ var WEAPONS = {
     }
   },
   reaper: {
-    name: 'Reaper', hidden: true, max: 1, cd: 0.8,
-    desc: 'LASH EVOLVED. A full circle sweep, every time.',
+    name: '收割', hidden: true, max: 1, cd: 0.8,
+    desc: '鞭击进化。每次都是一整圈横扫。',
     fire: function (S, w) {
       S.bullets.push(bullet({
         x: S.player.x, y: S.player.y, r: 96 * S.stats.area, grow: 190,
@@ -306,15 +308,15 @@ var WEAPONS = {
 
 // ---------- data: passives ----------
 var PASSIVES = {
-  dmg:   { name: 'Sharpen',   desc: '+20% damage',          max: 5, apply: function (S) { S.stats.dmg *= 1.2; } },
-  cd:    { name: 'Overclock', desc: '-12% cooldowns',       max: 5, apply: function (S) { S.stats.cd *= 0.88; } },
-  spd:   { name: 'Sprint',    desc: '+12% move speed',      max: 5, apply: function (S) { S.player.speed *= 1.12; } },
-  hp:    { name: 'Plating',   desc: '+25 max HP, heal 25',  max: 5, apply: function (S) { S.player.maxhp += 25; S.player.hp += 25; } },
-  mag:   { name: 'Magnet',    desc: '+45% pickup range',    max: 5, apply: function (S) { S.player.magnet *= 1.45; } },
-  area:  { name: 'Bloom',     desc: '+18% projectile size', max: 5, apply: function (S) { S.stats.area *= 1.18; } },
-  extra: { name: 'Multishot', desc: '+1 projectile',        max: 3, apply: function (S) { S.stats.extra += 1; } },
-  regen: { name: 'Mending',   desc: '+0.6 HP per second',   max: 3, apply: function (S) { S.stats.regen += 0.6; } },
-  crit:  { name: 'Killer Instinct', desc: '+8% critical chance', max: 5, apply: function (S) { S.stats.crit += 0.08; } }
+  dmg:   { name: '锐化',   desc: '伤害 +20%',              max: 5, apply: function (S) { S.stats.dmg *= 1.2; } },
+  cd:    { name: '超频',   desc: '冷却 −12%',              max: 5, apply: function (S) { S.stats.cd *= 0.88; } },
+  spd:   { name: '疾跑',   desc: '移速 +12%',              max: 5, apply: function (S) { S.player.speed *= 1.12; } },
+  hp:    { name: '装甲',   desc: '生命上限 +25，并回复 25', max: 5, apply: function (S) { S.player.maxhp += 25; S.player.hp += 25; } },
+  mag:   { name: '磁吸',   desc: '拾取范围 +45%',          max: 5, apply: function (S) { S.player.magnet *= 1.45; } },
+  area:  { name: '绽放',   desc: '弹体大小 +18%',          max: 5, apply: function (S) { S.stats.area *= 1.18; } },
+  extra: { name: '连射',   desc: '弹数 +1',                max: 3, apply: function (S) { S.stats.extra += 1; } },
+  regen: { name: '愈合',   desc: '每秒回复 0.6 生命',      max: 3, apply: function (S) { S.stats.regen += 0.6; } },
+  crit:  { name: '杀意',   desc: '暴击率 +8%',             max: 5, apply: function (S) { S.stats.crit += 0.08; } }
 };
 
 // A weapon evolves once it hits EVO_WEAPON_LVL and its paired passive hits EVO_PASSIVE_LVL.
@@ -324,39 +326,39 @@ var EVO_WEAPON_LVL = 4, EVO_PASSIVE_LVL = 2;
 // ---------- tunables ----------
 // Every entry is live: changing it takes effect in the running game, no restart.
 var TUNABLES = [
-  { g: 'Feel', key: 'volume', label: 'Volume', min: 0, max: 1, step: 0.05,
+  { g: '手感', key: 'volume', label: '音量', min: 0, max: 1, step: 0.05,
     get: function () { return VOLUME; }, set: function (v) { VOLUME = v; }, pct: true },
-  { g: 'Feel', key: 'shake', label: 'Screen shake', min: 0, max: 1.5, step: 0.05,
+  { g: '手感', key: 'shake', label: '屏幕震动', min: 0, max: 1.5, step: 0.05,
     get: function () { return SHAKE_SCALE; }, set: function (v) { SHAKE_SCALE = v; }, pct: true,
-    help: 'set to 0 to remove all camera motion' },
-  { g: 'Feel', key: 'dmgnum', label: 'Damage numbers', type: 'bool',
+    help: '设为 0 可关闭全部镜头晃动' },
+  { g: '手感', key: 'dmgnum', label: '伤害数字', type: 'bool',
     get: function () { return SHOW_DMG; }, set: function (v) { SHOW_DMG = v; } },
 
-  { g: 'Difficulty', key: 'spawnRamp', label: 'Spawn ramp', min: 40, max: 400, step: 5,
+  { g: '难度', key: 'spawnRamp', label: '出怪加速', min: 40, max: 400, step: 5,
     get: function () { return SPAWN_RAMP; }, set: function (v) { SPAWN_RAMP = v; },
-    help: 'higher = waves speed up more slowly' },
-  { g: 'Difficulty', key: 'batchRamp', label: 'Batch ramp', min: 40, max: 400, step: 5,
+    help: '越高，波次加快越慢' },
+  { g: '难度', key: 'batchRamp', label: '群怪加速', min: 40, max: 400, step: 5,
     get: function () { return BATCH_RAMP; }, set: function (v) { BATCH_RAMP = v; },
-    help: 'higher = fewer enemies per wave' },
-  { g: 'Difficulty', key: 'hpRamp', label: 'Enemy HP ramp', min: 30, max: 400, step: 2,
+    help: '越高，每波敌人越少' },
+  { g: '难度', key: 'hpRamp', label: '敌人血量成长', min: 30, max: 400, step: 2,
     get: function () { return HP_RAMP; }, set: function (v) { HP_RAMP = v; },
-    help: 'higher = enemies stay squishy longer' },
-  { g: 'Difficulty', key: 'maxEnemies', label: 'Population cap', min: 40, max: 900, step: 10,
+    help: '越高，敌人脆弱得越久' },
+  { g: '难度', key: 'maxEnemies', label: '场上上限', min: 40, max: 900, step: 10,
     get: function () { return MAX_ENEMIES; }, set: function (v) { MAX_ENEMIES = v; } },
-  { g: 'Difficulty', key: 'bossAt', label: 'Boss at', min: 30, max: 600, step: 10,
+  { g: '难度', key: 'bossAt', label: '首领出现', min: 30, max: 600, step: 10,
     get: function () { return BOSS_T; }, set: function (v) { BOSS_T = v; }, secs: true },
-  { g: 'Difficulty', key: 'iframes', label: 'Hit forgiveness', min: 0.1, max: 2, step: 0.05,
+  { g: '难度', key: 'iframes', label: '受击无敌', min: 0.1, max: 2, step: 0.05,
     get: function () { return IFRAMES; }, set: function (v) { IFRAMES = v; }, secs: true,
-    help: 'invulnerable time after taking a hit' },
+    help: '受击后的无敌时间' },
 
-  { g: 'Progression', key: 'xpStep', label: 'XP curve', min: 1, max: 20, step: 1,
+  { g: '成长', key: 'xpStep', label: '经验曲线', min: 1, max: 20, step: 1,
     get: function () { return XP_STEP; }, set: function (v) { XP_STEP = v; },
-    help: 'higher = levels come more slowly' },
-  { g: 'Progression', key: 'heart', label: 'Heart drop', min: 0, max: 0.15, step: 0.002,
+    help: '越高，升级越慢' },
+  { g: '成长', key: 'heart', label: '爱心掉落', min: 0, max: 0.15, step: 0.002,
     get: function () { return HEART_CHANCE; }, set: function (v) { HEART_CHANCE = v; }, pct: true },
-  { g: 'Progression', key: 'evoW', label: 'Evolve: weapon lvl', min: 1, max: 8, step: 1,
+  { g: '成长', key: 'evoW', label: '进化：武器等级', min: 1, max: 8, step: 1,
     get: function () { return EVO_WEAPON_LVL; }, set: function (v) { EVO_WEAPON_LVL = v; } },
-  { g: 'Progression', key: 'evoP', label: 'Evolve: passive lvl', min: 1, max: 5, step: 1,
+  { g: '成长', key: 'evoP', label: '进化：被动等级', min: 1, max: 5, step: 1,
     get: function () { return EVO_PASSIVE_LVL; }, set: function (v) { EVO_PASSIVE_LVL = v; } }
 ];
 var TUNE_DEFAULTS = (function () {
@@ -433,14 +435,14 @@ function upgradePool(S) {
     if (WEAPONS[k].hidden) continue;   // evolved forms are only reachable through an evo card
     w = findWeapon(S, k);
     if (w) {
-      if (w.lvl < WEAPONS[k].max) pool.push({ kind: 'wlvl', key: k, title: WEAPONS[k].name + ' Lv' + (w.lvl + 1), desc: WEAPONS[k].desc });
+      if (w.lvl < WEAPONS[k].max) pool.push({ kind: 'wlvl', key: k, title: WEAPONS[k].name + ' ' + (w.lvl + 1) + '级', desc: WEAPONS[k].desc });
     } else if (S.weapons.length < 5) {
-      pool.push({ kind: 'wnew', key: k, title: 'NEW  ' + WEAPONS[k].name, desc: WEAPONS[k].desc });
+      pool.push({ kind: 'wnew', key: k, title: '新武器 ' + WEAPONS[k].name, desc: WEAPONS[k].desc });
     }
   }
   for (k in PASSIVES) {
     lvl = S.passives[k] || 0;
-    if (lvl < PASSIVES[k].max) pool.push({ kind: 'pass', key: k, title: PASSIVES[k].name + ' Lv' + (lvl + 1), desc: PASSIVES[k].desc });
+    if (lvl < PASSIVES[k].max) pool.push({ kind: 'pass', key: k, title: PASSIVES[k].name + ' ' + (lvl + 1) + '级', desc: PASSIVES[k].desc });
   }
   for (var i = 0; i < S.weapons.length; i++) {
     var own = S.weapons[i], spec = WEAPONS[own.key];
@@ -448,7 +450,7 @@ function upgradePool(S) {
     if ((S.passives[spec.evo.passive] || 0) < EVO_PASSIVE_LVL) continue;
     pool.push({
       kind: 'evo', key: own.key, into: spec.evo.into,
-      title: 'EVOLVE  ' + WEAPONS[spec.evo.into].name, desc: WEAPONS[spec.evo.into].desc
+      title: '进化 ' + WEAPONS[spec.evo.into].name, desc: WEAPONS[spec.evo.into].desc
     });
   }
   return pool;
@@ -462,7 +464,7 @@ function pickUpgrades(S) {
   }
   // splice-without-replacement, so the three cards are always distinct
   while (out.length < 3 && pool.length) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-  while (out.length < 3) out.push({ kind: 'heal', key: 'heal', title: 'Field Repair', desc: 'Heal 40 HP' });
+  while (out.length < 3) out.push({ kind: 'heal', key: 'heal', title: '战地维修', desc: '回复 40 生命' });
   return out;
 }
 function applyUpgrade(S, c) {
@@ -727,12 +729,23 @@ function cardRects() {
   return [0, 1, 2].map(function (i) { return { x: x + i * (cw + gap), y: y, w: cw, h: ch }; });
 }
 function wrap(text, maxw) {
-  var words = text.split(' '), lines = [], cur = '';
-  for (var i = 0; i < words.length; i++) {
-    var probe = cur ? cur + ' ' + words[i] : words[i];
-    if (ctx.measureText(probe).width > maxw && cur) { lines.push(cur); cur = words[i]; }
-    else cur = probe;
+  // Space-separated text wraps by word. A token wider than the card (typical of Chinese,
+  // which has no spaces) breaks one character at a time so descriptions stay inside the card.
+  var words = String(text).split(' '), lines = [], cur = '';
+  function take(word) {
+    if (ctx.measureText(word).width <= maxw) {
+      var probe = cur ? cur + ' ' + word : word;
+      if (ctx.measureText(probe).width > maxw && cur) { lines.push(cur); cur = word; }
+      else cur = probe;
+      return;
+    }
+    for (var c = 0; c < word.length; c++) {
+      var next = cur + word.charAt(c);
+      if (ctx.measureText(next).width > maxw && cur) { lines.push(cur); cur = word.charAt(c); }
+      else cur = next;
+    }
   }
+  for (var i = 0; i < words.length; i++) if (words[i]) take(words[i]);
   if (cur) lines.push(cur);
   return lines;
 }
@@ -824,7 +837,7 @@ function draw() {
     var tx = S.texts[i];
     ctx.globalAlpha = clamp(tx.life * 2, 0, 1);
     ctx.fillStyle = tx.c;
-    ctx.font = 'bold ' + (tx.big ? 19 : 13) + 'px ui-monospace,Consolas,monospace';
+    ctx.font = 'bold ' + (tx.big ? 19 : 13) + 'px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
     ctx.fillText(tx.txt, tx.x, tx.y);
   }
   ctx.globalAlpha = 1;
@@ -833,40 +846,40 @@ function draw() {
   if (S.mode !== 'title') drawHud(W, H);
   if (S.mode === 'levelup') drawCards(W, H);
   if (S.mode === 'title') drawTitle(W, H);
-  if (S.mode === 'dead') drawEnd(W, H, 'YOU DIED', '#ff5566');
-  if (S.mode === 'win') drawEnd(W, H, 'SWARM CLEARED', '#4ee1d0');
-  if (S.mode === 'pause') drawEnd(W, H, 'PAUSED', '#8899bb');
+  if (S.mode === 'dead') drawEnd(W, H, '你死了', '#ff5566');
+  if (S.mode === 'win') drawEnd(W, H, '虫潮已清', '#4ee1d0');
+  if (S.mode === 'pause') drawEnd(W, H, '已暂停', '#8899bb');
 }
 
 function drawHud(W, H) {
   var p = S.player;
   bar(0, 0, W, 7, p.xp / p.xpNext, '#4ecdc4', '#141a2c');
 
-  ctx.font = 'bold 14px ui-monospace,Consolas,monospace';
+  ctx.font = 'bold 14px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
   ctx.textAlign = 'left';
   ctx.fillStyle = '#9fb';
-  ctx.fillText('LV ' + p.level, 14, 30);
+  ctx.fillText('等级 ' + p.level, 14, 30);
   bar(14, 38, 210, 13, p.hp / p.maxhp, p.hp / p.maxhp < 0.3 ? '#ff5566' : '#5ad07a');
   ctx.fillStyle = '#dfe';
   ctx.fillText(Math.ceil(p.hp) + ' / ' + Math.round(p.maxhp), 20, 49);
 
   ctx.textAlign = 'center';
-  ctx.font = 'bold 26px ui-monospace,Consolas,monospace';
+  ctx.font = 'bold 26px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
   ctx.fillStyle = '#eef';
   ctx.fillText(mmss(S.t), W / 2, 40);
 
   ctx.textAlign = 'right';
-  ctx.font = 'bold 14px ui-monospace,Consolas,monospace';
+  ctx.font = 'bold 14px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
   ctx.fillStyle = '#9fb';
-  ctx.fillText(S.kills + ' kills', W - 14, 30);
+  ctx.fillText(S.kills + ' 击杀', W - 14, 30);
   if (!S.bossSpawned) {
     ctx.fillStyle = '#667';
-    ctx.fillText('boss in ' + mmss(Math.max(0, BOSS_T - S.t)), W - 14, 50);
+    ctx.fillText('首领还有 ' + mmss(Math.max(0, BOSS_T - S.t)), W - 14, 50);
   }
 
   // loadout chips
   ctx.textAlign = 'left';
-  ctx.font = '12px ui-monospace,Consolas,monospace';
+  ctx.font = '12px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
   var x = 14;
   for (var i = 0; i < S.weapons.length; i++) {
     var w = S.weapons[i], label = WEAPONS[w.key].name + ' ' + w.lvl;
@@ -885,8 +898,8 @@ function drawHud(W, H) {
     bar(W / 2 - 260, 58, 520, 12, e.hp / e.maxhp, '#ff33dd');
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffc9f4';
-    ctx.font = 'bold 12px ui-monospace,Consolas,monospace';
-    ctx.fillText('THE SWARM MOTHER', W / 2, 84);
+    ctx.font = 'bold 12px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
+    ctx.fillText('虫潮之母', W / 2, 84);
     break;
   }
 }
@@ -896,11 +909,11 @@ function drawCards(W, H) {
   ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
   ctx.fillStyle = '#4ecdc4';
-  ctx.font = 'bold 30px ui-monospace,Consolas,monospace';
-  ctx.fillText('LEVEL ' + S.player.level, W / 2, H / 2 - 190);
+  ctx.font = 'bold 30px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
+  ctx.fillText('等级 ' + S.player.level, W / 2, H / 2 - 190);
   ctx.fillStyle = '#778';
-  ctx.font = '13px ui-monospace,Consolas,monospace';
-  ctx.fillText('click a card, or press 1 / 2 / 3' + (S.pending > 1 ? '   (' + S.pending + ' pending)' : ''), W / 2, H / 2 - 165);
+  ctx.font = '13px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
+  ctx.fillText('点击一张卡，或按 1 / 2 / 3' + (S.pending > 1 ? '   （' + S.pending + ' 项待选）' : ''), W / 2, H / 2 - 165);
 
   var rs = cardRects();
   for (var i = 0; i < 3; i++) {
@@ -912,16 +925,16 @@ function drawCards(W, H) {
     ctx.strokeRect(r.x, r.y, r.w, r.h);
 
     ctx.fillStyle = '#3d4970';
-    ctx.font = 'bold 40px ui-monospace,Consolas,monospace';
+    ctx.font = 'bold 40px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
     ctx.fillText(String(i + 1), r.x + r.w / 2, r.y + 62);
 
     ctx.fillStyle = c.kind === 'evo' ? '#ff8ae0' : c.kind === 'wnew' ? '#ffd479' : '#9ddfff';
-    ctx.font = 'bold 17px ui-monospace,Consolas,monospace';
+    ctx.font = 'bold 17px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
     var tl = wrap(c.title, r.w - 30);
     for (var k = 0; k < tl.length; k++) ctx.fillText(tl[k], r.x + r.w / 2, r.y + 120 + k * 22);
 
     ctx.fillStyle = '#8894ad';
-    ctx.font = '13px ui-monospace,Consolas,monospace';
+    ctx.font = '13px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
     var dl = wrap(c.desc, r.w - 36);
     for (var m = 0; m < dl.length; m++) ctx.fillText(dl[m], r.x + r.w / 2, r.y + 190 + m * 19);
   }
@@ -939,23 +952,23 @@ function drawEnd(W, H, title, col) {
   ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
   ctx.fillStyle = col;
-  ctx.font = 'bold 52px ui-monospace,Consolas,monospace';
+  ctx.font = 'bold 52px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
   ctx.fillText(title, W / 2, H / 2 - 40);
   if (S.mode === 'pause') {
     ctx.fillStyle = '#8894ad';
-    ctx.font = '15px ui-monospace,Consolas,monospace';
-    ctx.fillText('press P or ESC to resume', W / 2, H / 2 + 10);
+    ctx.font = '15px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
+    ctx.fillText('按 P 或 Esc 继续', W / 2, H / 2 + 10);
     return;
   }
   ctx.fillStyle = '#dfe';
-  ctx.font = '19px ui-monospace,Consolas,monospace';
-  ctx.fillText('survived ' + mmss(S.t) + '   ' + S.kills + ' kills   level ' + S.player.level, W / 2, H / 2 + 10);
+  ctx.font = '19px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
+  ctx.fillText('存活 ' + mmss(S.t) + '    ' + S.kills + ' 击杀    等级 ' + S.player.level, W / 2, H / 2 + 10);
   ctx.fillStyle = '#ffd479';
-  ctx.font = '15px ui-monospace,Consolas,monospace';
-  ctx.fillText('best  ' + mmss(S.best.t) + '   ' + S.best.kills + ' kills', W / 2, H / 2 + 44);
+  ctx.font = '15px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
+  ctx.fillText('最佳  ' + mmss(S.best.t) + '    ' + S.best.kills + ' 击杀', W / 2, H / 2 + 44);
   ctx.fillStyle = '#4ecdc4';
-  ctx.font = 'bold 16px ui-monospace,Consolas,monospace';
-  ctx.fillText('R  play again        M  main menu', W / 2, H / 2 + 92);
+  ctx.font = 'bold 16px "Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Micro Hei",sans-serif';
+  ctx.fillText('R  再来一局        M  返回主菜单', W / 2, H / 2 + 92);
 }
 
 // ---------- settings panel ----------
@@ -971,9 +984,9 @@ function uiHasFocus() {
 }
 function fmtTunable(t) {
   var v = t.get();
-  if (t.type === 'bool') return v ? 'on' : 'off';
+  if (t.type === 'bool') return v ? '开' : '关';
   if (t.pct) return Math.round(v * 100) + '%';
-  if (t.secs) return v >= 10 ? mmss(v) : v.toFixed(2) + 's';
+  if (t.secs) return v >= 10 ? mmss(v) : v.toFixed(2) + ' 秒';
   return String(v);
 }
 function tunableRow(t) {
@@ -1024,13 +1037,13 @@ function buildPanel() {
   panelBuilt = true;
 
   var head = document.createElement('h2');
-  head.textContent = 'SWARM';
+  head.textContent = '设置';
   panelEl.appendChild(head);
 
   var x = document.createElement('button');
   x.className = 'close';
   x.textContent = 'x';
-  x.title = 'close (T)';
+  x.title = '关闭（T）';
   x.addEventListener('click', function () { togglePanel(false); });
   panelEl.appendChild(x);
 
@@ -1046,18 +1059,18 @@ function buildPanel() {
   }
 
   var reset = document.createElement('button');
-  reset.textContent = 'Reset to defaults';
+  reset.textContent = '恢复默认';
   reset.addEventListener('click', function () { resetTunables(); syncPanel(); saveTuning(); });
   panelEl.appendChild(reset);
 
   var restart = document.createElement('button');
-  restart.textContent = 'Restart run';
+  restart.textContent = '重新开始';
   restart.addEventListener('click', function () { newGame('play'); togglePanel(false); });
   panelEl.appendChild(restart);
 
   var foot = document.createElement('div');
   foot.className = 'foot';
-  foot.textContent = 'T closes this. Changes apply live and are remembered.';
+  foot.textContent = '按 T 关闭。修改会立即生效，并会被记住。';
   panelEl.appendChild(foot);
 }
 function syncPanel() {
@@ -1079,20 +1092,20 @@ function buildMenu() {
   menuBuilt = true;
   menuEl.innerHTML =
     '<div class="mwrap">' +
-      '<h1>SWARM</h1>' +
-      '<p class="tag">Move. Everything else fires itself.</p>' +
+      '<h1>虫潮生存</h1>' +
+      '<p class="tag">走位。其他攻击会自己开火。</p>' +
       '<p class="best"></p>' +
       '<div class="mbtns">' +
-        '<button id="m-play">Play</button>' +
-        '<button id="m-settings">Settings</button>' +
+        '<button id="m-play">开始游戏</button>' +
+        '<button id="m-settings">设置</button>' +
       '</div>' +
-      '<details><summary>How to play</summary><ul>' +
-        '<li><b>WASD</b> or arrows to move. Your weapons fire themselves.</li>' +
-        '<li>Collect gems to level up, then take one of three upgrades.</li>' +
-        '<li>Pink hearts heal you, and the magnet ignores them &mdash; walk over them.</li>' +
-        '<li>Get a weapon to level 4 while its paired passive is at 2 and it evolves.</li>' +
-        '<li>The Swarm Mother arrives at 3:00, and she will not let you outrun her.</li>' +
-        '<li><b>P</b> pause &middot; <b>T</b> settings &middot; <b>R</b> replay &middot; <b>M</b> menu</li>' +
+      '<details><summary>玩法说明</summary><ul>' +
+        '<li>用 <b>WASD</b> 或方向键移动。武器会自动攻击。</li>' +
+        '<li>拾取宝石升级，再从三项强化里选一个。</li>' +
+        '<li>粉色爱心可以回血，磁吸不会吸它们——走过去捡。</li>' +
+        '<li>武器升到 4 级，且配对被动达到 2 级时，武器会进化。</li>' +
+        '<li>虫潮之母在 3:00 到来，你跑不掉。</li>' +
+        '<li><b>P</b> 暂停 · <b>T</b> 设置 · <b>R</b> 重开 · <b>M</b> 菜单</li>' +
       '</ul></details>' +
     '</div>';
   document.getElementById('m-play').addEventListener('click', startRun);
@@ -1107,7 +1120,7 @@ function syncMenu() {
   menuEl.hidden = !show;
   if (!show) return;
   var b = menuEl.querySelector('.best');
-  if (b) b.textContent = S.best.t > 0 ? 'best   ' + mmss(S.best.t) + '   ' + S.best.kills + ' kills' : '';
+  if (b) b.textContent = S.best.t > 0 ? '最佳   ' + mmss(S.best.t) + '   ' + S.best.kills + ' 击杀' : '';
   var play = document.getElementById('m-play');
   if (play) play.focus();
 }
