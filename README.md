@@ -47,10 +47,16 @@
 | 晴湾防线无尽版（终局地图上的无限波次，按守住的波数排行） | [iiduce](https://www.v2ex.com/member/iiduce) | [开始游戏](https://tz100.com/zh/games/sunharbor-endless) | [作者发布帖](https://www.v2ex.com/t/1243393) |
 | 棱镜交火（三分钟竞技场射击，在掩体间换位并切换枪械） | [iiduce](https://www.v2ex.com/member/iiduce) | [开始游戏](https://tz100.com/zh/games/prism-arena) | [作者发布帖](https://www.v2ex.com/t/1243393) |
 | 象棋（与分级电脑对弈，或开房和好友下） | [iiduce](https://www.v2ex.com/member/iiduce) | [开始游戏](https://tz100.com/zh/games/xiangqi) | [作者发布帖](https://www.v2ex.com/t/1243393) |
+| 100 Games（AI 一天做出的 100 个单文件小游戏，英文界面） | [Srikanth-AD](https://github.com/Srikanth-AD) | [开始游戏](https://100games.net/) | [原仓库](https://github.com/Srikanth-AD/100games) |
+| LittleJS Arcade（五十多款 MIT 单文件街机，英文界面） | [KilledByAPixel](https://github.com/KilledByAPixel) | [开始游戏](https://killedbyapixel.github.io/LittleJSArcade/) | [原仓库](https://github.com/KilledByAPixel/LittleJSArcade) |
+| EPOCH（从石器时代打到太空的单文件塔防，英文界面） | [okturan](https://github.com/okturan) | [开始游戏](https://okturan.github.io/epoch-td/) | [原仓库](https://github.com/okturan/epoch-td) |
+| 街机口袋 · Party Pocket Arcade（六款中文双人游戏，需本机 Node 启动） | [火山哥](https://github.com/huoshantao7-hub) | [下载及运行说明](https://github.com/huoshantao7-hub/party-pocket-arcade#一分钟开始) | [作者发布帖](https://x.com/huoshan007/status/2103035709485437105) |
+| Spy Hunter（Claude 版，同提示词对照试玩，英文） | [Daniel Lemire](https://github.com/lemire) | [开始游戏](https://lemire.me/spyhunter/claude/) | [Grok 对照](https://lemire.me/spyhunter/grok/) |
+| Spy Hunter（Grok 版，同提示词对照试玩，英文） | [Daniel Lemire](https://github.com/lemire) | [开始游戏](https://lemire.me/spyhunter/grok/) | [Claude 对照](https://lemire.me/spyhunter/claude/) |
 
-《穿越火线》《QQ 飞车》《黑神话：悟空》《天际5》的相关条目是非官方同人或致敬作品，与原游戏厂商无关。
+《穿越火线》《QQ 飞车》《黑神话：悟空》《天际5》《Spy Hunter》的相关条目是非官方同人或致敬作品，与原游戏厂商无关。
 
-《修仙掌门生涯》的作者提示首次加载可能较慢。《天际5》目前需要按原仓库说明在本地运行，尚无已核实的在线试玩地址。《归零协议》是单文件文字局，一局大约二三十分钟。《晴湾防线无尽版》《棱镜交火》《象棋》来自同一作者的 AI 小游戏站，无尽版比剧情版更难。以上链接于 2026-09-28 检查可访问；游戏内容及后续可用性以原作者网站为准。
+《修仙掌门生涯》的作者提示首次加载可能较慢。《天际5》目前需要按原仓库说明在本地运行，尚无已核实的在线试玩地址。《街机口袋》同样没有稳定的在线地址，需要本机安装 Node.js 20 或更新版本后，按仓库说明运行 `node server.mjs`。《归零协议》是单文件文字局，一局大约二三十分钟。《晴湾防线无尽版》《棱镜交火》《象棋》来自同一作者的 AI 小游戏站，无尽版比剧情版更难。《100 Games》《LittleJS Arcade》《EPOCH》和两则 Spy Hunter 对照试玩的界面是英文；lemire.me 偶发人机验证。以上链接于 2026-09-28 检查可访问；游戏内容及后续可用性以原作者网站为准。
 
 ## 署名与使用
 
