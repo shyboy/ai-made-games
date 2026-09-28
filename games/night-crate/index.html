@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='2' fill='%23c9844a'/%3E%3C/svg%3E">
+  <meta name="description" content="夜市叠箱：把进货的纸箱叠进棚下，消掉整行腾地方。">
+  <title>夜市叠箱</title>
+  <style>
+    :root { color-scheme: dark; --bg: #1a120c; --ink: #f6efe4; --muted: #cbbba6; --gold: #f0c27a; --line: #4a3826; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "WenQuanYi Micro Hei", "Droid Sans Fallback", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 80% 0%, rgba(240, 160, 70, .22), transparent 36%),
+        linear-gradient(180deg, #2a1c12, var(--bg));
+    }
+    button { font: inherit; -webkit-tap-highlight-color: transparent; }
+    a { color: var(--gold); text-decoration: none; }
+    .wrap { width: min(860px, calc(100% - 16px)); margin: 0 auto; padding: 14px 0 24px; }
+    header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+    .eyebrow { margin: 0; color: var(--gold); letter-spacing: .16em; font-size: .78rem; }
+    h1 { margin: 4px 0 0; font-size: 1.7rem; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 148px; gap: 12px; align-items: start; margin-top: 12px; }
+    .well {
+      display: grid;
+      place-items: center;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 10px;
+      min-height: 240px;
+    }
+    canvas { display: block; border-radius: 8px; background: #24180f; touch-action: none; max-width: 100%; }
+    .side { display: grid; gap: 8px; }
+    .stat, .nextbox {
+      background: rgba(20, 12, 8, .72);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 8px 10px;
+    }
+    .stat span, .nextbox span { color: var(--muted); font-size: .78rem; }
+    .stat b { display: block; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+    .nextbox canvas { margin-top: 6px; background: transparent; }
+    .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+    .pad button {
+      border: 1px solid var(--line);
+      background: #3a2718;
+      color: var(--ink);
+      border-radius: 14px;
+      min-height: 52px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pad button.wide { grid-column: span 1; }
+    .pad button.gold { background: var(--gold); color: #2a2112; border-color: transparent; }
+    .help { color: var(--muted); font-size: .85rem; line-height: 1.6; margin: 10px 0 0; }
+    .credit { color: var(--muted); font-size: .82rem; }
+    .mask { position: fixed; inset: 0; background: rgba(10, 6, 3, .72); display: grid; place-items: center; padding: 16px; z-index: 4; }
+    .mask[hidden] { display: none; }
+    .card { width: min(420px, 100%); background: #2a1d13; border: 1px solid var(--line); border-radius: 20px; padding: 22px; }
+    .card h2 { margin: 0 0 8px; }
+    .card p { margin: 0 0 16px; color: var(--muted); line-height: 1.7; }
+    .card button { border: 0; background: var(--gold); color: #2a2112; font-weight: 700; border-radius: 999px; padding: 12px 18px; cursor: pointer; }
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .nextbox { grid-column: span 1; }
+    }
+    @media (max-width: 520px) {
+      .side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">下落纸箱</p>
+        <h1>夜市叠箱</h1>
+      </div>
+      <a href="../../index.html">返回目录</a>
+    </header>
+    <div class="layout">
+      <div class="well"><canvas id="well"></canvas></div>
+      <aside class="side">
+        <div class="stat"><span>得分</span><b id="score">0</b></div>
+        <div class="stat"><span>行数</span><b id="lines">0</b></div>
+        <div class="stat"><span>层数</span><b id="level">1</b></div>
+        <div class="nextbox"><span>下一批</span><canvas id="next" width="112" height="84"></canvas><b id="nextName"></b></div>
+      </aside>
+    </div>
+    <div class="pad">
+      <button type="button" id="left">左移</button>
+      <button type="button" id="right">右移</button>
+      <button type="button" id="rot">旋转</button>
+      <button type="button" id="soft">下落</button>
+      <button type="button" id="hard" class="gold">落到底</button>
+      <button type="button" id="pause">暂停</button>
+    </div>
+    <p class="help">键盘：← → 移动，↑ 旋转，↓ 加速下落，空格直接落到底，P 暂停。消掉一整行就能腾出棚下的位置。</p>
+    <p class="credit">杨老师玩AI · AI 生成</p>
+  </div>
+  <div class="mask" id="mask">
+    <div class="card">
+      <h2 id="maskTitle">夜市叠箱</h2>
+      <p id="maskText"></p>
+      <button type="button" id="maskBtn">开堆</button>
+    </div>
+  </div>
+  <script>
+    const COLS = 10, ROWS = 20;
+    const SHAPES = {
+      I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+      O: [[1,1],[1,1]],
+      T: [[0,1,0],[1,1,1],[0,0,0]],
+      L: [[0,0,1],[1,1,1],[0,0,0]],
+      J: [[1,0,0],[1,1,1],[0,0,0]],
+      S: [[0,1,1],[1,1,0],[0,0,0]],
+      Z: [[1,1,0],[0,1,1],[0,0,0]]
+    };
+    const COLORS = { I: "#7ec8ff", O: "#ffd56a", T: "#d2a6ff", L: "#ff9d5c", J: "#8ea2ff", S: "#8ee0a8", Z: "#ff8b96" };
+    const NAMES = { I: "长条箱", O: "方箱", T: "丁字箱", L: "弯钩箱", J: "反钩箱", S: "之字箱", Z: "反之箱" };
+    const LINE_SCORE = [0, 100, 300, 500, 800];
+
+    const canvas = document.getElementById("well");
+    const ctx = canvas.getContext("2d");
+    const nextCanvas = document.getElementById("next");
+    const nctx = nextCanvas.getContext("2d");
+    const board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    let cell = 26, cur = null, queue = [], bag = [];
+    let score = 0, lines = 0, level = 1, best = 0, dropAcc = 0, last = 0;
+    let state = "ready";
+
+    function loadBest() {
+      try { best = +localStorage.getItem("aimg-crate-best") || 0; } catch (e) { best = 0; }
+    }
+    function saveBest() {
+      if (score <= best) return;
+      best = score;
+      try { localStorage.setItem("aimg-crate-best", String(best)); } catch (e) {}
+    }
+
+    function layout() {
+      const avail = document.querySelector(".well").clientWidth - 20;
+      const maxH = Math.min(window.innerHeight * 0.62, 680);
+      cell = Math.max(12, Math.floor(Math.min(avail / COLS, maxH / ROWS)));
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.style.width = cell * COLS + "px";
+      canvas.style.height = cell * ROWS + "px";
+      canvas.width = Math.floor(cell * COLS * dpr);
+      canvas.height = Math.floor(cell * ROWS * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function nextId() {
+      if (!bag.length) {
+        bag = ["I", "O", "T", "L", "J", "S", "Z"];
+        for (let i = bag.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = bag[i]; bag[i] = bag[j]; bag[j] = tmp;
+        }
+      }
+      return bag.pop();
+    }
+    function fillQueue() { while (queue.length < 3) queue.push(nextId()); }
+
+    function collides(p, dr, dc, shape) {
+      const s = shape || p.shape;
+      for (let i = 0; i < s.length; i++) {
+        for (let j = 0; j < s[i].length; j++) {
+          if (!s[i][j]) continue;
+          const rr = p.r + i + dr, cc = p.c + j + dc;
+          if (cc < 0 || cc >= COLS || rr >= ROWS) return true;
+          if (rr >= 0 && board[rr][cc]) return true;
+        }
+      }
+      return false;
+    }
+
+    function spawn() {
+      fillQueue();
+      const id = queue.shift();
+      fillQueue();
+      const shape = SHAPES[id].map((row) => row.slice());
+      cur = { id, shape, r: 0, c: Math.floor((COLS - shape[0].length) / 2) };
+      if (collides(cur, 0, 0)) endGame();
+      syncHud();
+    }
+
+    function rotateMatrix(shape) {
+      const n = shape.length;
+      const res = Array.from({ length: n }, () => Array(n).fill(0));
+      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) res[j][n - 1 - i] = shape[i][j];
+      return res;
+    }
+
+    function rotate() {
+      if (state !== "running" || !cur) return;
+      const next = rotateMatrix(cur.shape);
+      const kicks = [[0, 0], [-1, 0], [1, 0], [-2, 0], [2, 0]];
+      for (const [dc, dr] of kicks) {
+        if (!collides(cur, dr, dc, next)) {
+          cur.shape = next;
+          cur.r += dr;
+          cur.c += dc;
+          return;
+        }
+      }
+    }
+
+    function shift(dir) {
+      if (state !== "running" || !cur) return;
+      if (!collides(cur, 0, dir)) cur.c += dir;
+    }
+
+    function clearLines() {
+      let cleared = 0;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (board[r].every(Boolean)) {
+          board.splice(r, 1);
+          board.unshift(Array(COLS).fill(null));
+          cleared++;
+          r++;
+        }
+      }
+      if (!cleared) return;
+      score += LINE_SCORE[cleared] * level;
+      lines += cleared;
+      level = 1 + Math.floor(lines / 8);
+    }
+
+    function lockPiece() {
+      for (let i = 0; i < cur.shape.length; i++) {
+        for (let j = 0; j < cur.shape[i].length; j++) {
+          if (!cur.shape[i][j]) continue;
+          const rr = cur.r + i, cc = cur.c + j;
+          if (rr < 0) { endGame(); return; }
+          board[rr][cc] = cur.id;
+        }
+      }
+      clearLines();
+      if (state === "running") spawn();
+    }
+
+    function stepDown() {
+      if (!cur || state !== "running") return;
+      if (collides(cur, 1, 0)) lockPiece();
+      else cur.r++;
+    }
+
+    function soft() {
+      if (state !== "running" || !cur) return;
+      if (collides(cur, 1, 0)) stepDown();
+      else { cur.r++; score += 1; dropAcc = 0; syncHud(); }
+    }
+
+    function hard() {
+      if (state !== "running" || !cur) return;
+      let n = 0;
+      while (!collides(cur, 1, 0)) { cur.r++; n++; }
+      score += n * 2;
+      dropAcc = 0;
+      stepDown();
+      syncHud();
+    }
+
+    function syncHud() {
+      document.getElementById("score").textContent = String(score);
+      document.getElementById("lines").textContent = String(lines);
+      document.getElementById("level").textContent = String(level);
+      document.getElementById("nextName").textContent = queue[0] ? NAMES[queue[0]] : "";
+    }
+
+    function roundRect(context, x, y, w, h, r) {
+      context.beginPath();
+      context.moveTo(x + r, y);
+      context.arcTo(x + w, y, x + w, y + h, r);
+      context.arcTo(x + w, y + h, x, y + h, r);
+      context.arcTo(x, y + h, x, y, r);
+      context.arcTo(x, y, x + w, y, r);
+      context.closePath();
+    }
+
+    function drawBlock(context, x, y, size, id, alpha) {
+      context.save();
+      context.globalAlpha = alpha;
+      context.fillStyle = COLORS[id];
+      roundRect(context, x + 1, y + 1, size - 2, size - 2, Math.max(3, size * 0.18));
+      context.fill();
+      context.fillStyle = "rgba(255,255,255,.35)";
+      context.fillRect(x + size * 0.18, y + size * 0.16, size * 0.5, Math.max(2, size * 0.12));
+      context.restore();
+    }
+
+    function drawNext() {
+      const id = queue[0];
+      nctx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+      if (!id) return;
+      const shape = SHAPES[id];
+      const size = 22;
+      let minC = 9, minR = 9, maxC = 0, maxR = 0, any = false;
+      for (let i = 0; i < shape.length; i++) for (let j = 0; j < shape[i].length; j++) if (shape[i][j]) {
+        any = true;
+        minC = Math.min(minC, j); maxC = Math.max(maxC, j);
+        minR = Math.min(minR, i); maxR = Math.max(maxR, i);
+      }
+      if (!any) return;
+      const w = (maxC - minC + 1) * size, h = (maxR - minR + 1) * size;
+      const ox = (nextCanvas.width - w) / 2 - minC * size;
+      const oy = (nextCanvas.height - h) / 2 - minR * size;
+      for (let i = 0; i < shape.length; i++) for (let j = 0; j < shape[i].length; j++) {
+        if (shape[i][j]) drawBlock(nctx, ox + j * size, oy + i * size, size, id, 1);
+      }
+    }
+
+    function ghostRow() {
+      let dr = 0;
+      while (!collides(cur, dr + 1, 0)) dr++;
+      return cur.r + dr;
+    }
+
+    function draw() {
+      const w = cell * COLS, h = cell * ROWS;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#2a1c12";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(180, 60, 40, .16)";
+      ctx.fillRect(0, 0, w, cell * 2);
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          ctx.strokeStyle = "rgba(255,255,255,.04)";
+          ctx.strokeRect(c * cell, r * cell, cell, cell);
+          if (board[r][c]) drawBlock(ctx, c * cell, r * cell, cell, board[r][c], 1);
+        }
+      }
+      if (cur && state !== "over") {
+        const gy = ghostRow();
+        for (let i = 0; i < cur.shape.length; i++) for (let j = 0; j < cur.shape[i].length; j++) {
+          if (!cur.shape[i][j]) continue;
+          drawBlock(ctx, (cur.c + j) * cell, (gy + i) * cell, cell, cur.id, 0.22);
+          drawBlock(ctx, (cur.c + j) * cell, (cur.r + i) * cell, cell, cur.id, 1);
+        }
+      }
+      if (state === "paused") {
+        ctx.fillStyle = "rgba(0,0,0,.45)";
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#f6efe4";
+        ctx.font = "700 22px WenQuanYi Micro Hei, Droid Sans Fallback, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("暂停", w / 2, h / 2);
+      }
+      drawNext();
+    }
+
+    function showMask(title, text, btn, fn) {
+      document.getElementById("maskTitle").textContent = title;
+      document.getElementById("maskText").textContent = text;
+      const b = document.getElementById("maskBtn");
+      b.textContent = btn;
+      b.onclick = fn;
+      document.getElementById("mask").hidden = false;
+    }
+    function hideMask() { document.getElementById("mask").hidden = true; }
+
+    function endGame() {
+      if (state === "over") return;
+      state = "over";
+      cur = null;
+      saveBest();
+      syncHud();
+      showMask("顶到棚顶了", "这一摊叠到 " + score + " 分，清了 " + lines + " 行。最佳 " + best + " 分。", "再叠一摊", startGame);
+    }
+
+    function startGame() {
+      hideMask();
+      for (let r = 0; r < ROWS; r++) board[r].fill(null);
+      score = 0; lines = 0; level = 1; dropAcc = 0;
+      queue = []; bag = [];
+      state = "running";
+      spawn();
+      syncHud();
+    }
+
+    function togglePause() {
+      if (state === "running") state = "paused";
+      else if (state === "paused") state = "running";
+      document.getElementById("pause").textContent = state === "paused" ? "继续" : "暂停";
+    }
+
+    function bindHold(el, fn) {
+      let delay = 0, rep = 0;
+      const stop = () => { clearTimeout(delay); clearInterval(rep); };
+      el.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        try { el.setPointerCapture(e.pointerId); } catch (err) {}
+        fn();
+        delay = setTimeout(() => { rep = setInterval(fn, 80); }, 170);
+      });
+      el.addEventListener("pointerup", stop);
+      el.addEventListener("pointercancel", stop);
+    }
+
+    bindHold(document.getElementById("left"), () => shift(-1));
+    bindHold(document.getElementById("right"), () => shift(1));
+    bindHold(document.getElementById("soft"), soft);
+    document.getElementById("rot").addEventListener("pointerdown", (e) => { e.preventDefault(); rotate(); });
+    document.getElementById("hard").addEventListener("pointerdown", (e) => { e.preventDefault(); hard(); });
+    document.getElementById("pause").addEventListener("click", togglePause);
+
+    window.addEventListener("keydown", (e) => {
+      const keys = ["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", " ", "p", "P"];
+      if (keys.includes(e.key)) e.preventDefault();
+      if (e.key === "p" || e.key === "P") { togglePause(); return; }
+      if (e.repeat && (e.key === "ArrowUp" || e.key === " ")) return;
+      if (e.key === "ArrowLeft") shift(-1);
+      else if (e.key === "ArrowRight") shift(1);
+      else if (e.key === "ArrowDown") soft();
+      else if (e.key === "ArrowUp") rotate();
+      else if (e.key === " ") hard();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && state === "running") togglePause();
+    });
+    window.addEventListener("resize", layout);
+
+    function frame(t) {
+      const dt = Math.min(48, last ? t - last : 16);
+      last = t;
+      if (state === "running") {
+        dropAcc += dt;
+        const every = Math.max(130, 880 - (level - 1) * 75);
+        while (dropAcc >= every && state === "running") {
+          dropAcc -= every;
+          stepDown();
+        }
+      }
+      draw();
+      requestAnimationFrame(frame);
+    }
+
+    loadBest();
+    layout();
+    syncHud();
+    showMask("夜市叠箱", "进货的纸箱从棚顶掉下来。左右挪动、旋转，叠满一整行就会收走。箱子顶到棚顶这摊就散了。空格可以一下子落到底。", "开堆", startGame);
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

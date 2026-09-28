@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23e23d4a'/%3E%3C/svg%3E">
+  <meta name="description" content="锦鲤消消：交换相邻锦鲤，三只同色连成一线即可消除。">
+  <title>锦鲤消消</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --water: #0c2c34;
+      --deep: #071c22;
+      --card: #123941;
+      --line: #1e5560;
+      --gold: #f0c27a;
+      --ink: #f4f7f6;
+      --muted: #b7c9c6;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "WenQuanYi Micro Hei", "Droid Sans Fallback", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(240, 194, 122, .18), transparent 32%),
+        radial-gradient(circle at 90% 20%, rgba(40, 140, 150, .35), transparent 28%),
+        linear-gradient(180deg, #0e3a42, var(--deep) 40%);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255,255,255,.16) 0 1px, transparent 1.5px);
+      background-size: 22px 22px;
+      mask-image: linear-gradient(#000, transparent 80%);
+      opacity: .25;
+    }
+    a { color: var(--gold); }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    .wrap { width: min(520px, calc(100% - 20px)); margin: 0 auto; padding: 16px 0 28px; position: relative; }
+    header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
+    .back { font-size: .85rem; text-decoration: none; }
+    h1 { margin: 4px 0 0; font-size: 1.7rem; letter-spacing: .08em; }
+    .eyebrow { margin: 0; color: var(--gold); letter-spacing: .16em; font-size: .78rem; }
+    .hud { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+    .stat { background: rgba(7, 28, 34, .72); border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; }
+    .stat b { display: block; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+    .stat span { color: var(--muted); font-size: .78rem; }
+    .bar { height: 8px; border-radius: 99px; background: #0a242b; border: 1px solid var(--line); overflow: hidden; margin: 8px 0; }
+    .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #e15b64, var(--gold)); }
+    .note { min-height: 1.4em; margin: 0 0 8px; color: var(--gold); font-size: .92rem; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      padding: 8px;
+      border-radius: 18px;
+      background: rgba(6, 24, 29, .78);
+      border: 1px solid var(--line);
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .board.locked { pointer-events: none; }
+    .cell {
+      aspect-ratio: 1;
+      border: 0;
+      padding: 0;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      color: white;
+      cursor: pointer;
+      position: relative;
+    }
+    .cell:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .cell.sel { transform: translateY(-2px) scale(1.05); box-shadow: 0 0 0 2px var(--gold); z-index: 1; }
+    .cell.hint { box-shadow: 0 0 0 2px #fff, 0 0 12px var(--gold); }
+    .cell.pop .fish { animation: vanish .18s ease forwards; }
+    .k0 { background: radial-gradient(circle at 30% 30%, #ff9aa2, #d23a48); }
+    .k1 { background: radial-gradient(circle at 30% 30%, #ffe3a3, #e0a020); }
+    .k2 { background: radial-gradient(circle at 30% 30%, #b8fff2, #149684); }
+    .k3 { background: radial-gradient(circle at 30% 30%, #c3c9ee, #3a4478); }
+    .k4 { background: radial-gradient(circle at 30% 30%, #ffd0e6, #d85290); }
+    .k5 { background: radial-gradient(circle at 30% 30%, #f7f8ff, #9eabc4); color: #1d2740; }
+    .fish { width: 78%; height: 56%; display: block; margin: 12% auto 0; }
+    .fish b {
+      position: absolute;
+      left: 0; right: 0; bottom: 2px;
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-shadow: 0 1px 1px rgba(0,0,0,.25);
+    }
+    @keyframes vanish { to { transform: scale(.2); opacity: 0; } }
+    .actions { display: flex; gap: 8px; margin-top: 12px; }
+    .actions button, .mask button {
+      font: inherit;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: var(--gold);
+      color: #2a2112;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .actions button.ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+    .credit { color: var(--muted); font-size: .82rem; margin-top: 14px; }
+    .mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 14, 18, .72);
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      z-index: 5;
+    }
+    .mask[hidden] { display: none; }
+    .card {
+      width: min(420px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    .card h2 { margin: 0 0 8px; font-size: 1.6rem; }
+    .card p { margin: 0 0 16px; color: var(--muted); line-height: 1.7; }
+    @media (prefers-reduced-motion: reduce) {
+      .cell.pop .fish { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">池塘三消</p>
+        <h1>锦鲤消消</h1>
+      </div>
+      <a class="back" href="../../index.html">返回目录</a>
+    </header>
+    <div class="hud">
+      <div class="stat"><span>得分</span><b id="score">0</b></div>
+      <div class="stat"><span>剩余步数</span><b id="moves">30</b></div>
+      <div class="stat"><span>最佳</span><b id="best">0</b></div>
+    </div>
+    <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+    <p class="note" id="note">把同色锦鲤连成三只以上。</p>
+    <div class="board" id="board" role="grid" aria-label="锦鲤池"></div>
+    <div class="actions">
+      <button type="button" id="hintBtn">提示一步</button>
+      <button type="button" class="ghost" id="restartBtn">重新开局</button>
+    </div>
+    <p class="credit">杨老师玩AI · AI 生成</p>
+  </div>
+  <div class="mask" id="mask">
+    <div class="card">
+      <h2 id="maskTitle">锦鲤消消</h2>
+      <p id="maskText"></p>
+      <button type="button" id="maskBtn">开始</button>
+    </div>
+  </div>
+  <script>
+    const ROWS = 8, COLS = 8, TYPES = 6, TARGET = 1200, MOVE_MAX = 30;
+    const NAMES = ["赤鲤", "金鲤", "青鲤", "墨鲤", "莲鲤", "霜鲤"];
+    const LABELS = ["赤", "金", "青", "墨", "莲", "霜"];
+    const board = [];
+    let selected = null, lock = false, ended = false;
+    let score = 0, moves = MOVE_MAX, combo = 0, best = 0;
+    const popSet = new Set();
+    const hintSet = new Set();
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    function fishSVG() {
+      return '<span class="fish"><svg viewBox="0 0 64 36" aria-hidden="true"><ellipse cx="38" cy="18" rx="16" ry="10" fill="currentColor"/><path d="M20 18 L6 8 L10 18 L6 28 Z" fill="currentColor"/><circle cx="46" cy="15" r="1.7" fill="#fff"/></svg><b></b></span>';
+    }
+
+    function loadBest() {
+      try { best = +localStorage.getItem("aimg-koi-best") || 0; } catch (e) { best = 0; }
+    }
+    function saveBest() {
+      if (score <= best) return;
+      best = score;
+      try { localStorage.setItem("aimg-koi-best", String(best)); } catch (e) {}
+    }
+
+    function randType() { return Math.floor(Math.random() * TYPES); }
+
+    function buildFresh() {
+      for (let attempt = 0; attempt < 40; attempt++) {
+        for (let r = 0; r < ROWS; r++) {
+          board[r] = [];
+          for (let c = 0; c < COLS; c++) {
+            let t = randType();
+            let guard = 0;
+            while (guard++ < 12 && (
+              (c >= 2 && board[r][c - 1] === t && board[r][c - 2] === t) ||
+              (r >= 2 && board[r - 1][c] === t && board[r - 2][c] === t)
+            )) t = randType();
+            board[r][c] = t;
+          }
+        }
+        if (findAnyMove()) return;
+      }
+    }
+
+    function findMatches() {
+      const hit = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+      for (let r = 0; r < ROWS; r++) {
+        let start = 0;
+        for (let c = 1; c <= COLS; c++) {
+          const same = c < COLS && board[r][c] !== null && board[r][c] === board[r][start];
+          if (!same) {
+            if (board[r][start] !== null && c - start >= 3) {
+              for (let k = start; k < c; k++) hit[r][k] = true;
+            }
+            start = c;
+          }
+        }
+      }
+      for (let c = 0; c < COLS; c++) {
+        let start = 0;
+        for (let r = 1; r <= ROWS; r++) {
+          const same = r < ROWS && board[r][c] !== null && board[r][c] === board[start][c];
+          if (!same) {
+            if (board[start][c] !== null && r - start >= 3) {
+              for (let k = start; k < r; k++) hit[k][c] = true;
+            }
+            start = r;
+          }
+        }
+      }
+      const cells = [];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (hit[r][c]) cells.push([r, c]);
+      return cells;
+    }
+
+    function swap(r1, c1, r2, c2) {
+      const t = board[r1][c1];
+      board[r1][c1] = board[r2][c2];
+      board[r2][c2] = t;
+    }
+
+    function findAnyMove() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const neighbors = [[0, 1], [1, 0]];
+          for (const [dr, dc] of neighbors) {
+            const r2 = r + dr, c2 = c + dc;
+            if (r2 >= ROWS || c2 >= COLS) continue;
+            swap(r, c, r2, c2);
+            const ok = findMatches().length > 0;
+            swap(r, c, r2, c2);
+            if (ok) return [[r, c], [r2, c2]];
+          }
+        }
+      }
+      return null;
+    }
+
+    function collapse() {
+      for (let c = 0; c < COLS; c++) {
+        const stack = [];
+        for (let r = ROWS - 1; r >= 0; r--) if (board[r][c] !== null) stack.push(board[r][c]);
+        for (let i = 0; i < ROWS; i++) {
+          const r = ROWS - 1 - i;
+          board[r][c] = i < stack.length ? stack[i] : null;
+        }
+      }
+    }
+
+    function refill() {
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        if (board[r][c] === null) board[r][c] = randType();
+      }
+    }
+
+    function reshuffle() {
+      const vals = [];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) vals.push(board[r][c]);
+      for (let attempt = 0; attempt < 40; attempt++) {
+        for (let i = vals.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = vals[i]; vals[i] = vals[j]; vals[j] = tmp;
+        }
+        let i = 0;
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) board[r][c] = vals[i++];
+        if (!findMatches().length && findAnyMove()) return;
+      }
+      buildFresh();
+    }
+
+    function render() {
+      const root = document.getElementById("board");
+      root.classList.toggle("locked", lock || ended);
+      for (let i = 0; i < ROWS * COLS; i++) {
+        const r = (i / COLS) | 0, c = i % COLS;
+        let el = root.children[i];
+        if (!el) {
+          el = document.createElement("button");
+          el.type = "button";
+          el.addEventListener("click", () => onCell(+el.dataset.r, +el.dataset.c));
+          root.appendChild(el);
+        }
+        el.dataset.r = String(r);
+        el.dataset.c = String(c);
+        const t = board[r][c];
+        if (el.dataset.kind !== String(t)) {
+          el.dataset.kind = String(t);
+          el.innerHTML = t == null ? "" : fishSVG();
+          const label = el.querySelector("b");
+          if (label) label.textContent = LABELS[t];
+        }
+        const sel = selected && selected.r === r && selected.c === c;
+        el.className = "cell" + (t == null ? " empty" : " k" + t) + (sel ? " sel" : "") + (hintSet.has(r + "," + c) ? " hint" : "") + (popSet.has(r + "," + c) ? " pop" : "");
+        el.setAttribute("aria-label", t == null ? "空位" : NAMES[t]);
+        el.setAttribute("aria-pressed", sel ? "true" : "false");
+      }
+      document.getElementById("score").textContent = String(score);
+      document.getElementById("moves").textContent = String(moves);
+      document.getElementById("best").textContent = String(best);
+      document.getElementById("bar").style.width = Math.min(100, (score / TARGET) * 100) + "%";
+    }
+
+    function setNote(text) { document.getElementById("note").textContent = text; }
+
+    function showMask(title, text, btn, fn) {
+      document.getElementById("maskTitle").textContent = title;
+      document.getElementById("maskText").textContent = text;
+      const b = document.getElementById("maskBtn");
+      b.textContent = btn;
+      b.onclick = fn;
+      document.getElementById("mask").hidden = false;
+    }
+    function hideMask() { document.getElementById("mask").hidden = true; }
+
+    async function resolve() {
+      combo = 0;
+      while (combo < 40) {
+        const cells = findMatches();
+        if (!cells.length) break;
+        combo++;
+        const gain = cells.length * 10 * combo;
+        score += gain;
+        popSet.clear();
+        cells.forEach(([r, c]) => popSet.add(r + "," + c));
+        setNote(combo > 1 ? "连消 ×" + combo + "　+" + gain : "消除 +" + gain);
+        render();
+        await sleep(180);
+        cells.forEach(([r, c]) => { board[r][c] = null; });
+        popSet.clear();
+        collapse();
+        refill();
+        render();
+        await sleep(140);
+      }
+      saveBest();
+      render();
+      if (score >= TARGET) return win();
+      if (moves <= 0) return lose();
+      if (!findAnyMove()) {
+        setNote("没有可消的组合，池水把锦鲤重新搅匀了。");
+        reshuffle();
+        render();
+      }
+      lock = false;
+      render();
+    }
+
+    function win() {
+      ended = true;
+      lock = true;
+      saveBest();
+      render();
+      showMask("锦鲤聚拢", "你用 " + (MOVE_MAX - moves) + " 步凑到 " + score + " 分，池塘安静下来了。", "再摆一池", startGame);
+    }
+    function lose() {
+      ended = true;
+      lock = true;
+      saveBest();
+      render();
+      const gap = Math.max(0, TARGET - score);
+      showMask("步数用完了", "得分 " + score + "，还差 " + gap + " 分。换个连法，下一池会顺一些。", "再来一局", startGame);
+    }
+
+    async function onCell(r, c) {
+      if (lock || ended || board[r][c] == null) return;
+      hintSet.clear();
+      if (!selected) { selected = { r, c }; render(); return; }
+      if (selected.r === r && selected.c === c) { selected = null; render(); return; }
+      const dr = Math.abs(selected.r - r), dc = Math.abs(selected.c - c);
+      if (dr + dc !== 1) { selected = { r, c }; render(); return; }
+      const a = selected;
+      selected = null;
+      lock = true;
+      swap(a.r, a.c, r, c);
+      render();
+      if (!findMatches().length) {
+        await sleep(150);
+        swap(a.r, a.c, r, c);
+        lock = false;
+        setNote("这两条不成行，换一对相邻的试试。");
+        render();
+        return;
+      }
+      moves--;
+      await resolve();
+    }
+
+    function startGame() {
+      hideMask();
+      score = 0;
+      moves = MOVE_MAX;
+      combo = 0;
+      ended = false;
+      lock = false;
+      selected = null;
+      popSet.clear();
+      hintSet.clear();
+      buildFresh();
+      setNote("目标 " + TARGET + " 分。点一条，再点相邻的另一条。");
+      render();
+    }
+
+    document.getElementById("hintBtn").addEventListener("click", () => {
+      if (lock || ended) return;
+      const move = findAnyMove();
+      hintSet.clear();
+      if (!move) { setNote("这一池没有可走的步。"); return; }
+      move.forEach(([r, c]) => hintSet.add(r + "," + c));
+      setNote("高亮的两条可以交换。");
+      render();
+    });
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      if (lock && !ended) return;
+      startGame();
+    });
+
+    loadBest();
+    for (let r = 0; r < ROWS; r++) board[r] = Array(COLS).fill(null);
+    showMask("锦鲤消消", "交换相邻的锦鲤，让三只以上同色连成横排或竖排。连消会加分。达到 " + TARGET + " 分就过关，一共 " + MOVE_MAX + " 步。", "开始摆鱼", startGame);
+    render();
+  </script>
+</body>
+</html>

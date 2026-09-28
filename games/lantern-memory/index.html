@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4' y='2' width='8' height='10' rx='3' fill='%23e23d4a'/%3E%3C/svg%3E">
+  <meta name="description" content="灯会翻牌：翻开灯笼，找出成对的灯会图案。">
+  <title>灯会翻牌</title>
+  <style>
+    :root { color-scheme: dark; --bg: #1a1030; --card: #2a1848; --gold: #f0c27a; --ink: #f7f1ff; --muted: #d2c4ea; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "WenQuanYi Micro Hei", "Droid Sans Fallback", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% -10%, rgba(240, 194, 122, .25), transparent 36%),
+        linear-gradient(180deg, #2a1548, var(--bg));
+    }
+    button { font: inherit; -webkit-tap-highlight-color: transparent; }
+    a { color: var(--gold); text-decoration: none; }
+    .wrap { width: min(520px, calc(100% - 20px)); margin: 0 auto; padding: 14px 0 28px; }
+    header { display: flex; justify-content: space-between; align-items: flex-end; }
+    .eyebrow { margin: 0; color: var(--gold); letter-spacing: .16em; font-size: .78rem; }
+    h1 { margin: 4px 0 0; font-size: 1.7rem; }
+    .hud { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+    .stat { background: rgba(16, 8, 32, .55); border: 1px solid #4d3870; border-radius: 14px; padding: 8px 10px; }
+    .stat span { color: var(--muted); font-size: .78rem; }
+    .stat b { display: block; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .card {
+      border: 0; padding: 0; background: transparent; aspect-ratio: 3 / 4; cursor: pointer; perspective: 700px;
+    }
+    .card:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 12px; }
+    .inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .35s ease; }
+    .card.on .inner, .card.matched .inner { transform: rotateY(180deg); }
+    .face {
+      position: absolute; inset: 0; border-radius: 12px; display: grid; place-items: center;
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
+      border: 1px solid #6a4d32;
+    }
+    .back {
+      background:
+        radial-gradient(circle at 50% 40%, #c5364a, #7d1d32 70%);
+      color: var(--gold); font-weight: 800; letter-spacing: .2em;
+    }
+    .front { background: #f7efe2; color: #6b2a3a; transform: rotateY(180deg); }
+    .card.matched .front { box-shadow: inset 0 0 0 2px #e0a020; }
+    .face svg { width: 70%; height: 70%; }
+    .tools { margin-top: 12px; }
+    .tools button, .mask button {
+      border: 0; background: var(--gold); color: #3a2410; font-weight: 800; border-radius: 999px; padding: 12px 16px; cursor: pointer;
+    }
+    .credit { color: var(--muted); font-size: .82rem; }
+    .mask { position: fixed; inset: 0; background: rgba(10, 6, 18, .72); display: grid; place-items: center; padding: 16px; z-index: 3; }
+    .mask[hidden] { display: none; }
+    .panel { width: min(420px, 100%); background: #2a1844; border: 1px solid #5c4578; border-radius: 20px; padding: 20px; }
+    .panel h2 { margin: 0 0 8px; }
+    .panel p { margin: 0 0 14px; color: var(--muted); line-height: 1.7; }
+    @media (prefers-reduced-motion: reduce) { .inner { transition: none; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">记忆翻牌</p>
+        <h1>灯会翻牌</h1>
+      </div>
+      <a href="../../index.html">返回目录</a>
+    </header>
+    <div class="hud">
+      <div class="stat"><span>步数</span><b id="moves">0</b></div>
+      <div class="stat"><span>用时</span><b id="time">00:00</b></div>
+      <div class="stat"><span>最佳步数</span><b id="best">—</b></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="tools"><button type="button" id="again">重新翻开</button></div>
+    <p class="credit">杨老师玩AI · AI 生成</p>
+  </div>
+  <div class="mask" id="mask">
+    <div class="panel">
+      <h2 id="maskTitle">灯会翻牌</h2>
+      <p id="maskText"></p>
+      <button type="button" id="maskBtn">点灯</button>
+    </div>
+  </div>
+  <script>
+    const ICONS = [
+      { id: "moon", name: "圆月", svg: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="18" fill="#f4d35e"/><circle cx="40" cy="26" r="14" fill="#f7efe2"/></svg>' },
+      { id: "rabbit", name: "玉兔", svg: '<svg viewBox="0 0 64 64"><ellipse cx="24" cy="16" rx="6" ry="14" fill="#f4f1ea"/><ellipse cx="40" cy="16" rx="6" ry="14" fill="#f4f1ea"/><ellipse cx="32" cy="38" rx="16" ry="14" fill="#f4f1ea"/><circle cx="26" cy="36" r="2" fill="#5c3b46"/><circle cx="38" cy="36" r="2" fill="#5c3b46"/></svg>' },
+      { id: "flower", name: "桂花", svg: '<svg viewBox="0 0 64 64"><g fill="#e7b423"><circle cx="32" cy="18" r="7"/><circle cx="46" cy="32" r="7"/><circle cx="32" cy="46" r="7"/><circle cx="18" cy="32" r="7"/><circle cx="32" cy="32" r="5" fill="#fff4cc"/></g></svg>' },
+      { id: "lantern", name: "花灯", svg: '<svg viewBox="0 0 64 64"><rect x="30" y="6" width="4" height="8" fill="#c5364a"/><rect x="18" y="14" width="28" height="32" rx="12" fill="#e23d4a"/><rect x="28" y="46" width="8" height="6" fill="#f0c27a"/><path d="M32 52 L28 62 L36 62 Z" fill="#f0c27a"/></svg>' },
+      { id: "cake", name: "月饼", svg: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="18" fill="#e0a24a"/><rect x="24" y="24" width="16" height="16" fill="none" stroke="#f7efe2" stroke-width="2"/></svg>' },
+      { id: "boat", name: "龙舟", svg: '<svg viewBox="0 0 64 64"><path d="M8 36 Q32 54 56 36 L50 40 Q32 50 14 40 Z" fill="#c5364a"/><path d="M32 34 L32 16" stroke="#f0c27a" stroke-width="3"/><path d="M32 18 L46 28 L32 26 Z" fill="#f0c27a"/></svg>' },
+      { id: "star", name: "星子", svg: '<svg viewBox="0 0 64 64"><polygon points="32,8 38,26 56,26 42,36 48,54 32,44 16,54 22,36 8,26 26,26" fill="#f0c27a"/></svg>' },
+      { id: "cloud", name: "祥云", svg: '<svg viewBox="0 0 64 64"><ellipse cx="24" cy="36" rx="12" ry="10" fill="#d9e4f5"/><ellipse cx="38" cy="34" rx="14" ry="12" fill="#d9e4f5"/><ellipse cx="48" cy="40" rx="8" ry="7" fill="#d9e4f5"/></svg>' }
+    ];
+
+    let cards = [], first = null, lock = false, moves = 0, matched = 0, started = 0, timer = 0, ended = false, best = null, deal = 0;
+
+    function loadBest() {
+      try {
+        const v = localStorage.getItem("aimg-lantern-best");
+        best = v ? +v : null;
+      } catch (e) { best = null; }
+    }
+    function saveBest() {
+      if (best == null || moves < best) {
+        best = moves;
+        try { localStorage.setItem("aimg-lantern-best", String(best)); } catch (e) {}
+      }
+    }
+
+    function shuffle(list) {
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+      }
+      return list;
+    }
+
+    function format(ms) {
+      const s = Math.floor(ms / 1000);
+      const m = Math.floor(s / 60);
+      return String(m).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+    }
+
+    function render() {
+      const root = document.getElementById("grid");
+      if (root.dataset.deal !== String(deal) || root.childElementCount !== cards.length) {
+        root.dataset.deal = String(deal);
+        root.innerHTML = "";
+        cards.forEach((card, i) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.innerHTML = '<span class="inner"><span class="face back">灯</span><span class="face front">' + card.svg + '</span></span>';
+          btn.addEventListener("click", () => flip(i));
+          root.appendChild(btn);
+        });
+      }
+      Array.from(root.children).forEach((btn, i) => {
+        const card = cards[i];
+        btn.className = "card" + (card.up ? " on" : "") + (card.matched ? " matched" : "");
+        btn.setAttribute("aria-label", card.up || card.matched ? card.name : "未翻开的灯笼");
+      });
+      document.getElementById("moves").textContent = String(moves);
+      document.getElementById("best").textContent = best == null ? "—" : String(best);
+    }
+
+    function tick() {
+      if (!started || ended) return;
+      document.getElementById("time").textContent = format(performance.now() - started);
+    }
+
+    function rating() {
+      if (moves <= 12) return "过目不忘";
+      if (moves <= 16) return "灯火明亮";
+      return "慢慢也翻完了";
+    }
+
+    function win() {
+      ended = true;
+      clearInterval(timer);
+      saveBest();
+      render();
+      const used = format(performance.now() - started);
+      showMask(rating(), "你用 " + moves + " 步、" + used + " 配齐了八对灯会图案。" + (best === moves ? " 这是目前最少的步数。" : ""), "再办一场", startGame);
+    }
+
+    function flip(i) {
+      if (lock || ended) return;
+      const card = cards[i];
+      if (card.up || card.matched) return;
+      card.up = true;
+      if (!started) {
+        started = performance.now();
+        timer = setInterval(tick, 250);
+      }
+      if (first == null) { first = i; render(); return; }
+      const a = first;
+      first = null;
+      moves++;
+      render();
+      if (cards[a].id === card.id) {
+        cards[a].matched = true;
+        card.matched = true;
+        matched++;
+        render();
+        if (matched === 8) win();
+        return;
+      }
+      lock = true;
+      setTimeout(() => {
+        cards[a].up = false;
+        card.up = false;
+        lock = false;
+        render();
+      }, 680);
+    }
+
+    function showMask(title, text, btn, fn) {
+      document.getElementById("maskTitle").textContent = title;
+      document.getElementById("maskText").textContent = text;
+      const b = document.getElementById("maskBtn");
+      b.textContent = btn;
+      b.onclick = fn;
+      document.getElementById("mask").hidden = false;
+    }
+
+    function startGame() {
+      document.getElementById("mask").hidden = true;
+      clearInterval(timer);
+      const deck = shuffle(ICONS.concat(ICONS.map((icon) => ({ ...icon }))));
+      cards = deck.map((icon) => ({ ...icon, up: false, matched: false }));
+      first = null; lock = false; moves = 0; matched = 0; started = 0; ended = false; deal++;
+      document.getElementById("time").textContent = "00:00";
+      render();
+    }
+
+    document.getElementById("again").addEventListener("click", () => {
+      if (lock) return;
+      startGame();
+    });
+
+    loadBest();
+    render();
+    showMask("灯会翻牌", "每次翻开两盏灯笼。图案相同就留在桌上，不同就重新盖上。八对全部配齐即通关，步数越少越好。", "点灯", startGame);
+  </script>
+</body>
+</html>

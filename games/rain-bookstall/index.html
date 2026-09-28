@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='3' y='2' width='10' height='12' rx='1' fill='%23f0c27a'/%3E%3C/svg%3E">
+  <meta name="description" content="雨巷书摊：在雨夜里摆一个晚上的旧书摊，把摊子收到打烊。">
+  <title>雨巷书摊</title>
+  <style>
+    :root { color-scheme: dark; --ink: #f6f1e6; --muted: #d9d0c2; --gold: #f0c27a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "WenQuanYi Micro Hei", "Droid Sans Fallback", sans-serif;
+      color: var(--ink);
+      background: #141a22;
+    }
+    button { font: inherit; -webkit-tap-highlight-color: transparent; }
+    a { color: var(--gold); }
+    .rain, .lamp { position: fixed; inset: 0; pointer-events: none; }
+    .rain {
+      background: repeating-linear-gradient(100deg, transparent 0 10px, rgba(190, 210, 230, .18) 10px 11px);
+      animation: rain .8s linear infinite;
+      opacity: .55;
+    }
+    .lamp { background: radial-gradient(circle at 50% 18%, rgba(255, 196, 120, .28), transparent 32%); }
+    @keyframes rain { to { transform: translateY(12px); } }
+    .wrap { width: min(640px, calc(100% - 24px)); margin: 0 auto; padding: 18px 0 40px; position: relative; }
+    header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+    .eyebrow { margin: 0; color: var(--gold); letter-spacing: .18em; font-size: .78rem; }
+    h1 { margin: 4px 0 0; font-size: 1.8rem; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
+    .stat { background: rgba(12, 16, 22, .72); border: 1px solid #3c4654; border-radius: 14px; padding: 8px 10px; }
+    .stat span { color: var(--muted); font-size: .78rem; }
+    .stat b { font-variant-numeric: tabular-nums; }
+    .meter { height: 6px; border-radius: 99px; background: #0e141c; margin-top: 6px; overflow: hidden; }
+    .meter i { display: block; height: 100%; background: var(--gold); width: 0; }
+    .meter.warn i { background: #e07a6a; }
+    .story {
+      background: rgba(22, 16, 12, .88);
+      border: 1px solid #6a5438;
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.28);
+    }
+    .story h2 { margin: 0 0 8px; font-size: 1.25rem; }
+    .log { margin: 0 0 10px; color: var(--gold); min-height: 1.4em; }
+    .story p { margin: 0; line-height: 1.85; font-size: 1.05rem; }
+    .choices { display: grid; gap: 8px; margin-top: 16px; }
+    .choices button, .mask button {
+      text-align: left; border: 1px solid #6a5438; background: #3a2a18; color: var(--ink);
+      border-radius: 14px; padding: 12px 14px; cursor: pointer; line-height: 1.5;
+    }
+    .choices button:hover, .choices button:focus-visible { border-color: var(--gold); }
+    .end { margin-top: 14px; padding-top: 10px; border-top: 1px solid #4a3b2a; color: var(--muted); }
+    .end li { margin: 6px 0; }
+    .credit { color: var(--muted); font-size: .82rem; }
+    .mask { position: fixed; inset: 0; background: rgba(8, 10, 14, .62); display: grid; place-items: center; padding: 16px; }
+    .mask[hidden] { display: none; }
+    .card { width: min(460px, 100%); background: #241910; border: 1px solid #6a5438; border-radius: 20px; padding: 20px; }
+    .card p { color: var(--muted); line-height: 1.7; }
+    .card button, #again { background: var(--gold); color: #2c2112; border: 0; font-weight: 800; border-radius: 999px; }
+    #again { margin-top: 12px; padding: 12px 16px; cursor: pointer; }
+    @media (prefers-reduced-motion: reduce) { .rain { animation: none; } }
+  </style>
+</head>
+<body>
+  <div class="rain"></div>
+  <div class="lamp"></div>
+  <div class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">一晚的摊子</p>
+        <h1>雨巷书摊</h1>
+      </div>
+      <a href="../../index.html">返回目录</a>
+    </header>
+    <div class="stats">
+      <div class="stat"><span>零钱</span><b id="money">12</b><div class="meter"><i id="moneyBar"></i></div></div>
+      <div class="stat"><span>口碑</span><b id="rep">2</b><div class="meter"><i id="repBar"></i></div></div>
+      <div class="stat"><span>体力</span><b id="sta">6</b><div class="meter" id="staMeter"><i id="staBar"></i></div></div>
+    </div>
+    <article class="story" id="story"></article>
+    <p class="credit">杨老师玩AI · AI 生成</p>
+  </div>
+  <div class="mask" id="mask">
+    <div class="card">
+      <h2>雨巷书摊</h2>
+      <p>旧城雨巷，你有一个晚上的旧书摊。留意零钱、口碑和体力，把摊子收到打烊。不同的选择会走向不同的收摊。</p>
+      <button type="button" id="open">开摊</button>
+    </div>
+  </div>
+  <script>
+    const SCENES = {
+      start: {
+        title: "雨刚落下来",
+        text: "砖墙边的油布还盖着。纸箱里是你下午收来的旧书，灯笼捏在手里，巷子那头已经有人打伞。这一晚上，能把书交到想读的人手里就好。",
+        choices: [
+          { label: "掀开油布，点上灯笼", apply: (s) => { s.rep += 1; s.sta -= 1; }, result: () => "灯笼一亮，雨丝里多了一小圈暖光。有人朝这边放慢了脚步。", next: "student" },
+          { label: "先把怕潮的书收进铁盒", apply: (s) => { s.sta -= 1; s.flags.dry = true; }, result: () => "地方志和两本诗集进了铁盒。摊上少了些，心里踏实一点。", next: "student" },
+          { label: "去巷口喝一碗姜汤再开张", apply: (s) => { s.money -= 6; s.sta += 2; }, result: () => "姜汤辣得人一激灵。口袋轻了些，手上倒是暖和了。", next: "student" }
+        ]
+      },
+      student: {
+        title: "打伞的学生",
+        text: "一个学生在摊前站了很久，手指停在一本缺了角的诗集上。伞沿的水滴进鞋里，他却没有挪开。",
+        choices: [
+          { label: "按标价八元卖给他", apply: (s) => { s.money += 8; s.rep += 1; }, result: () => "他小心地把诗集裹进围巾。八枚硬币在盒子里碰出一声轻响。", next: "gust" },
+          { label: "看他犹豫，五元成交", apply: (s) => { s.money += 5; s.rep += 2; }, result: () => "他连声道谢，说以后带同学来。你少收了三元，巷子里多了一句好话。", next: "gust" },
+          { label: "这本自己留着，不卖", apply: (s) => { s.rep -= 1; }, result: () => "你把诗集抽回来。学生点点头，撑伞走了，脚步比来时快。", next: "gust" }
+        ]
+      },
+      gust: {
+        title: "风掀油布",
+        text: "雨突然斜进来。油布的一角被风扯起，书页哗地响。隔壁炒栗子的阿婆朝你喊：先顾哪头？",
+        choices: [
+          { label: "扑上去压住油布", apply: (s) => { s.sta -= 2; s.flags.covered = true; }, result: () => "你整个人压在油布上，书大多是干的。衣服倒先湿透了。", next: "editor" },
+          { label: "先去帮阿婆看一眼炉子", apply: (s) => { s.sta -= 1; s.rep += 2; s.flags.helped = true; }, result: () => "炉火没灭。阿婆拍拍你的手背，说收摊时给你留一包热的。摊上的书被雨点了几滴。", next: "editor" },
+          { label: "只护住灯笼，书随它去", apply: (s) => { s.money -= 4; s.rep -= 1; }, result: () => "灯还亮着。几本书的角湿了，你只好把它们单独放到一边，准备少卖一点。", next: "editor" }
+        ]
+      },
+      editor: {
+        title: "找地方志的人",
+        text: "雨势稍缓。一个戴眼镜的人问你有没有老城的地方志，语气像是找了整整一条巷。",
+        choices: [
+          { label: "从箱子里翻地方志", apply: (s) => { s.sta -= 2; if (s.flags.dry) { s.money += 18; s.rep += 1; s.flags.soldDry = true; } else { s.money += 10; } }, result: (s) => s.flags.soldDry ? "铁盒里的书页是干的。对方付了十八元，还问你明天还在不在。" : "书角有点潮，你少要了一些。对方耸耸肩，还是买下了。", next: "child" },
+          { label: "老实说没有，指给他旧目录", apply: (s) => { s.rep += 2; }, result: () => "你告诉他图书馆旧目录里有一套。他郑重地道了谢，留下一句：摊子诚实，难得。", next: "child" },
+          { label: "拿一本游记先应付过去", apply: (s) => { s.money += 12; s.rep -= 2; }, result: () => "对方翻了两页就皱眉，还是把钱放下了。你看着那本游记被带走，嘴里有点发干。", next: "child" }
+        ]
+      },
+      child: {
+        title: "收摊前的最后一盏",
+        text: "雨小了。一个孩子拉着家长停在灯笼底下，想听你讲刚才那本书里的故事。巷口的灯一盏盏还亮着。",
+        choices: [
+          { label: "讲一小段再收摊", apply: (s) => { s.sta -= 1; s.rep += 2; if (s.flags.helped) { s.money += 8; s.sta += 1; s.flags.gift = true; } }, result: (s) => s.flags.gift ? "孩子听完就走了。阿婆趁机塞来一包栗子，还有八元，说是介绍人的心意。" : "你讲到灯笼要灭，孩子的家长说下次还来。喉咙有点哑。", next: "end" },
+          { label: "送一张书签，约他们下次来", apply: (s) => { s.rep += 1; s.money -= 1; }, result: () => "书签是你自己裁的。孩子捏着它跑进雨里，像捏着一张很小的地图。", next: "end" },
+          { label: "直接盖上油布回家", apply: (s) => {}, result: () => "你把灯笼吹灭。雨声一下子变得很近，书都回到了箱子里。", next: "end" }
+        ]
+      }
+    };
+
+    const ENDINGS = {
+      best: { title: "满巷都认得这盏灯", text: "你收摊时口袋是沉的，灯笼还温着。有人说明天带朋友来，阿婆把最后一颗栗子塞进你手里。雨小了，巷口有人朝这盏灯挥了挥手。" },
+      fame: { title: "口碑比铜板响", text: "铜板没装满口袋，可路过的人都放慢了脚步。有人说明天专门来找你。油布盖好的时候，你觉得这一晚没有白点灯。" },
+      coin: { title: "铜板有了，巷子静了", text: "袋子比来时鼓。可熟悉的人没再跟你说话。灯笼照着被你应付出去的那一角，你把它们单独放进纸箱，明天再想办法。" },
+      calm: { title: "寻常雨夜", text: "没有特别的事发生，也没有搞砸。你点过的灯、翻过的书、躲过的雨，都算数。油布一盖，明天还能再摆。" },
+      tired: { title: "灯笼先灭了", text: "你靠着砖墙站了一会儿，手是冷的，字也看不清了。书还剩一些，可人先撑到头了。早点回去喝碗热的，摊子明天还在。" }
+    };
+
+    const state = { money: 12, rep: 2, sta: 6, flags: {}, scene: "start", journal: [], ended: false };
+
+    function reset() {
+      state.money = 12; state.rep = 2; state.sta = 6; state.flags = {}; state.scene = "start"; state.journal = []; state.ended = false;
+    }
+
+    function pickEnding() {
+      if (state.money >= 30 && state.rep >= 6) return "best";
+      if (state.rep >= 6) return "fame";
+      if (state.money >= 30 && state.rep <= 2) return "coin";
+      return "calm";
+    }
+
+    function renderStats() {
+      document.getElementById("money").textContent = String(state.money);
+      document.getElementById("rep").textContent = String(state.rep);
+      document.getElementById("sta").textContent = String(state.sta);
+      document.getElementById("moneyBar").style.width = Math.max(0, Math.min(100, state.money / 50 * 100)) + "%";
+      document.getElementById("repBar").style.width = Math.max(0, Math.min(100, state.rep / 10 * 100)) + "%";
+      document.getElementById("staBar").style.width = Math.max(0, Math.min(100, state.sta / 8 * 100)) + "%";
+      document.getElementById("staMeter").classList.toggle("warn", state.sta <= 2);
+    }
+
+    function render() {
+      renderStats();
+      const root = document.getElementById("story");
+      if (state.ended) {
+        const end = ENDINGS[state.ending];
+        root.innerHTML = "<h2>" + end.title + "</h2><p>" + end.text + "</p>" +
+          (state.journal.length ? "<ul class='end'>" + state.journal.map((line) => "<li>" + line + "</li>").join("") + "</ul>" : "") +
+          "<button type='button' id='again'>再摆一晚</button>";
+        document.getElementById("again").addEventListener("click", start);
+        return;
+      }
+      const scene = SCENES[state.scene];
+      const log = state.journal.length ? state.journal[state.journal.length - 1] : "灯还没点，雨已经到了。";
+      const warn = state.sta <= 2 ? "<p class='log'>你的手有点发凉，体力见底了。</p>" : "";
+      root.innerHTML = "<h2>" + scene.title + "</h2><p class='log'>" + log + "</p>" + warn + "<p>" + scene.text + "</p><div class='choices'>" +
+        scene.choices.map((c, i) => "<button type='button' data-i='" + i + "'>" + (i + 1) + ". " + c.label + "</button>").join("") +
+        "</div>";
+      root.querySelectorAll("button").forEach((btn) => btn.addEventListener("click", () => choose(+btn.dataset.i)));
+    }
+
+    function finish(id) {
+      state.ended = true;
+      state.ending = id;
+      render();
+    }
+
+    function choose(i) {
+      if (state.ended) return;
+      const scene = SCENES[state.scene];
+      const choice = scene.choices[i];
+      if (!choice) return;
+      choice.apply(state);
+      state.journal.push(choice.result(state));
+      if (state.sta <= 0) {
+        state.sta = 0;
+        finish("tired");
+        return;
+      }
+      if (choice.next === "end") finish(pickEnding());
+      else { state.scene = choice.next; render(); }
+    }
+
+    function start() {
+      reset();
+      document.getElementById("mask").hidden = true;
+      render();
+    }
+
+    document.getElementById("open").addEventListener("click", start);
+    window.addEventListener("keydown", (e) => {
+      const open = document.getElementById("mask").hidden === false;
+      if (open) {
+        if (e.key === "Enter") start();
+        return;
+      }
+      if (state.ended && e.key === "Enter") start();
+      const n = +e.key;
+      if (n >= 1 && n <= 3) choose(n - 1);
+    });
+    renderStats();
+  </script>
+</body>
+</html>

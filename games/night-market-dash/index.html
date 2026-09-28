@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23ffb15a'/%3E%3C/svg%3E">
+  <meta name="description" content="夜市冲刺：在灯笼和摊位之间奔跑，跳过木箱，滑过横幅。">
+  <title>夜市冲刺</title>
+  <style>
+    :root { color-scheme: dark; --ink: #f7f1e8; --muted: #d5c7ea; --gold: #ffcc8a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "WenQuanYi Micro Hei", "Droid Sans Fallback", sans-serif;
+      color: var(--ink);
+      background: #140e22;
+    }
+    button { font: inherit; -webkit-tap-highlight-color: transparent; }
+    a { color: var(--gold); text-decoration: none; }
+    .wrap { width: min(980px, calc(100% - 16px)); margin: 0 auto; padding: 12px 0 20px; }
+    header { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+    .eyebrow { margin: 0; color: var(--gold); letter-spacing: .16em; font-size: .78rem; }
+    h1 { margin: 2px 0 8px; font-size: 1.6rem; }
+    .stage { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid #3a2c55; background: #1a1230; }
+    canvas { display: block; width: 100%; height: auto; touch-action: none; background: #1a1230; }
+    .hud {
+      position: absolute; left: 10px; right: 10px; top: 10px;
+      display: flex; justify-content: space-between; gap: 8px;
+      text-shadow: 0 1px 2px rgba(0,0,0,.6); font-weight: 700;
+      pointer-events: none;
+    }
+    .pad { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .pad button {
+      min-height: 56px; border: 0; border-radius: 16px; font-weight: 800; font-size: 1.1rem; cursor: pointer;
+    }
+    #jump { background: #ffcc8a; color: #3a2410; }
+    #slide { background: #6d5a8e; color: white; }
+    .help, .credit { color: var(--muted); font-size: .85rem; line-height: 1.6; }
+    .mask { position: absolute; inset: 0; background: rgba(12, 8, 22, .72); display: grid; place-items: center; padding: 16px; }
+    .mask[hidden] { display: none; }
+    .card { width: min(440px, 100%); background: #261838; border-radius: 18px; padding: 18px; border: 1px solid #5a4578; }
+    .card h2 { margin: 0 0 8px; }
+    .card p { margin: 0 0 14px; color: var(--muted); line-height: 1.7; }
+    .card button { border: 0; background: var(--gold); color: #3a2410; font-weight: 800; border-radius: 999px; padding: 12px 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">跑酷躲避</p>
+        <h1>夜市冲刺</h1>
+      </div>
+      <a href="../../index.html">返回目录</a>
+    </header>
+    <div class="stage" id="stage">
+      <canvas id="cv" width="960" height="540"></canvas>
+      <div class="hud"><span id="dist">0 米</span><span id="lives">纸灯 × 3</span><span id="sweets">糖葫芦 0</span></div>
+      <div class="mask" id="mask">
+        <div class="card">
+          <h2 id="maskTitle">夜市冲刺</h2>
+          <p id="maskText"></p>
+          <button type="button" id="maskBtn">开跑</button>
+        </div>
+      </div>
+    </div>
+    <div class="pad">
+      <button type="button" id="jump">跳</button>
+      <button type="button" id="slide">按住滑行</button>
+    </div>
+    <p class="help">点画面上半部分或按空格跳跃，越过木箱；按住下半部分、下滑按钮或 ↓ 键，从横幅下面钻过去。接到糖葫芦加分。三盏纸灯灭掉就收摊。</p>
+    <p class="credit">杨老师玩AI · AI 生成</p>
+  </div>
+  <script>
+    const W = 960, H = 540, GROUND = 446;
+    const canvas = document.getElementById("cv");
+    const ctx = canvas.getContext("2d");
+    const player = { x: 150, y: GROUND - 78, w: 42, h: 78, vy: 0, grounded: true, slide: false, inv: 0, run: 0 };
+    let obstacles = [], coins = [], particles = [];
+    let speed = 260, dist = 0, sweets = 0, lives = 3, best = 0;
+    let state = "ready", spawnIn = 1.3, last = 0, scroll = 0, far = 0;
+    let slideHeld = false, jumpBuf = 0, coyote = 0;
+
+    function loadBest() {
+      try { best = +localStorage.getItem("aimg-dash-best") || 0; } catch (e) { best = 0; }
+    }
+    function saveBest() {
+      const meters = Math.floor(dist);
+      if (meters <= best) return;
+      best = meters;
+      try { localStorage.setItem("aimg-dash-best", String(best)); } catch (e) {}
+    }
+
+    function reset() {
+      player.y = GROUND - 78; player.h = 78; player.vy = 0; player.grounded = true; player.slide = false; player.inv = 0;
+      obstacles = []; coins = []; particles = [];
+      speed = 260; dist = 0; sweets = 0; lives = 3; spawnIn = 1.25; scroll = 0; far = 0;
+      jumpBuf = 0; coyote = 0; slideHeld = false;
+      state = "play";
+      sync();
+    }
+
+    function sync() {
+      document.getElementById("dist").textContent = Math.floor(dist) + " 米";
+      document.getElementById("lives").textContent = "纸灯 × " + lives;
+      document.getElementById("sweets").textContent = "糖葫芦 " + sweets;
+    }
+
+    function showMask(title, text, btn, fn) {
+      document.getElementById("maskTitle").textContent = title;
+      document.getElementById("maskText").textContent = text;
+      const b = document.getElementById("maskBtn");
+      b.textContent = btn;
+      b.onclick = fn;
+      document.getElementById("mask").hidden = false;
+    }
+
+    function jump() { if (state === "play") jumpBuf = 0.14; }
+    function setSlide(on) { slideHeld = on; }
+
+    function spawn() {
+      const banner = Math.random() < 0.42;
+      if (banner) {
+        obstacles.push({ kind: "banner", x: W + 10, w: 46, y: 168, h: GROUND - 46 - 168 });
+      } else {
+        obstacles.push({ kind: "box", x: W + 10, w: 48, y: GROUND - 54, h: 54 });
+        if (Math.random() < 0.7) coins.push({ x: W + 34, y: GROUND - 150, r: 12 });
+      }
+      if (Math.random() < 0.45) coins.push({ x: W + 120, y: GROUND - (banner ? 120 : 170), r: 12 });
+    }
+
+    function rectsOverlap(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function hurt() {
+      if (player.inv > 0 || state !== "play") return;
+      lives--;
+      player.inv = 1.15;
+      sync();
+      if (lives <= 0) {
+        state = "over";
+        saveBest();
+        showMask("纸灯灭了", "跑了 " + Math.floor(dist) + " 米，接到 " + sweets + " 串糖葫芦。最佳 " + best + " 米。", "再跑一趟", () => {
+          document.getElementById("mask").hidden = true;
+          reset();
+        });
+      }
+    }
+
+    function bodyRect() {
+      if (player.slide && player.grounded) return { x: player.x + 10, y: GROUND - 30, w: 28, h: 26 };
+      return { x: player.x + 10, y: player.y + 10, w: 28, h: 60 };
+    }
+
+    function update(dt) {
+      if (state !== "play") return;
+      speed = 260 + Math.min(320, dist * 3.2);
+      dist += speed * dt / 48;
+      scroll += speed * dt;
+      far += speed * dt * 0.25;
+      player.run += dt * 10;
+      player.inv = Math.max(0, player.inv - dt);
+      coyote = player.grounded ? 0.1 : coyote - dt;
+      jumpBuf = Math.max(0, jumpBuf - dt);
+      if (jumpBuf > 0 && coyote > 0) {
+        player.vy = -700;
+        player.grounded = false;
+        coyote = 0;
+        jumpBuf = 0;
+        player.slide = false;
+      }
+      player.vy += 1900 * dt;
+      if (slideHeld && !player.grounded) player.vy += 1600 * dt;
+      player.y += player.vy * dt;
+      const standH = 78;
+      if (player.y >= GROUND - standH) {
+        player.y = GROUND - standH;
+        player.vy = 0;
+        player.grounded = true;
+      }
+      player.slide = slideHeld && player.grounded;
+      player.h = player.slide ? 36 : standH;
+
+      spawnIn -= dt;
+      if (spawnIn <= 0) {
+        spawn();
+        const gap = Math.max(280, speed * 0.95) + Math.random() * 120;
+        spawnIn = gap / speed;
+      }
+
+      const body = bodyRect();
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const ob = obstacles[i];
+        ob.x -= speed * dt;
+        if (player.inv <= 0 && rectsOverlap(body, ob)) {
+          obstacles.splice(i, 1);
+          hurt();
+          continue;
+        }
+        if (ob.x + ob.w < -20) obstacles.splice(i, 1);
+      }
+      for (let i = coins.length - 1; i >= 0; i--) {
+        const coin = coins[i];
+        coin.x -= speed * dt;
+        const cx = coin.x, cy = coin.y;
+        const hit = cx > body.x - coin.r && cx < body.x + body.w + coin.r && cy > body.y - coin.r && cy < body.y + body.h + coin.r;
+        if (hit) {
+          sweets++;
+          dist += 2;
+          sync();
+          coins.splice(i, 1);
+          continue;
+        }
+        if (coin.x < -20) coins.splice(i, 1);
+      }
+      sync();
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function drawBackground() {
+      const sky = ctx.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#241447");
+      sky.addColorStop(1, "#4a2348");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#f4e2b0";
+      ctx.beginPath();
+      ctx.arc(780, 90, 36, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#4a2348";
+      ctx.beginPath();
+      ctx.arc(794, 82, 30, 0, Math.PI * 2);
+      ctx.fill();
+      const farOff = far % 220;
+      for (let i = -1; i < 7; i++) {
+        const x = i * 220 - farOff;
+        ctx.fillStyle = "#3a2158";
+        ctx.fillRect(x, 250, 150, 90);
+        ctx.fillStyle = "#c4493a";
+        ctx.beginPath();
+        ctx.moveTo(x - 10, 250);
+        ctx.lineTo(x + 75, 200);
+        ctx.lineTo(x + 160, 250);
+        ctx.fill();
+      }
+      const stallOff = scroll % 280;
+      for (let i = -1; i < 6; i++) {
+        const x = i * 280 - stallOff;
+        ctx.fillStyle = i % 2 ? "#e07a3d" : "#3aa08a";
+        ctx.fillRect(x, 300, 180, 16);
+        ctx.fillStyle = "#5a3b2a";
+        ctx.fillRect(x + 16, 316, 8, 110);
+        ctx.fillRect(x + 150, 316, 8, 110);
+        ctx.fillStyle = "#f2d7a2";
+        ctx.font = "700 18px WenQuanYi Micro Hei, Droid Sans Fallback, sans-serif";
+        ctx.fillText(i % 2 ? "烤串" : "糖水", x + 62, 292);
+      }
+      const lampOff = (scroll * 0.6) % 140;
+      ctx.strokeStyle = "rgba(255,255,255,.35)";
+      ctx.beginPath();
+      ctx.moveTo(0, 150);
+      ctx.lineTo(W, 150);
+      ctx.stroke();
+      for (let i = -1; i < 10; i++) {
+        const x = i * 140 - lampOff + 20;
+        ctx.fillStyle = "#ffb15a";
+        ctx.beginPath();
+        ctx.ellipse(x, 176, 14, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#7a3418";
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#2a211c";
+      ctx.fillRect(0, GROUND, W, H - GROUND);
+      ctx.fillStyle = "#3d3128";
+      const brick = scroll % 48;
+      for (let i = -1; i < 24; i++) ctx.fillRect(i * 48 - brick, GROUND + 18, 36, 8);
+    }
+
+    function drawPlayer() {
+      if (player.inv > 0 && Math.floor(player.inv * 12) % 2 === 0) return;
+      const bob = player.grounded && !player.slide ? Math.sin(player.run) * 3 : 0;
+      const h = player.slide ? 36 : 78;
+      const y = GROUND - h + (player.slide ? 0 : bob);
+      ctx.save();
+      ctx.translate(player.x, y);
+      ctx.fillStyle = "rgba(0,0,0,.25)";
+      ctx.beginPath();
+      ctx.ellipse(22, h - 2, 18, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#f2e6d8";
+      roundRect(8, player.slide ? 6 : 28, 28, player.slide ? 24 : 36, 8);
+      ctx.fill();
+      ctx.fillStyle = "#e23d4a";
+      ctx.fillRect(player.slide ? 30 : 34, player.slide ? 8 : 34, 16, 8);
+      if (!player.slide) {
+        ctx.fillStyle = "#f6d7b0";
+        ctx.beginPath();
+        ctx.arc(22, 16, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#2a211c";
+        ctx.fillRect(16, 14, 3, 3);
+        ctx.fillRect(24, 14, 3, 3);
+        const leg = Math.sin(player.run) * 6;
+        ctx.strokeStyle = "#3a2a22";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(16, 62);
+        ctx.lineTo(12 + leg, 76);
+        ctx.moveTo(28, 62);
+        ctx.lineTo(32 - leg, 76);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawWorld() {
+      drawBackground();
+      obstacles.forEach((ob) => {
+        if (ob.kind === "box") {
+          ctx.fillStyle = "#c9844a";
+          roundRect(ob.x, ob.y, ob.w, ob.h, 6);
+          ctx.fill();
+          ctx.strokeStyle = "#6b4424";
+          ctx.stroke();
+          ctx.strokeStyle = "#8a5a32";
+          ctx.beginPath();
+          ctx.moveTo(ob.x, ob.y + ob.h / 2);
+          ctx.lineTo(ob.x + ob.w, ob.y + ob.h / 2);
+          ctx.stroke();
+        } else {
+          ctx.strokeStyle = "#f0d2a0";
+          ctx.beginPath();
+          ctx.moveTo(ob.x - 6, 150);
+          ctx.lineTo(ob.x + ob.w + 6, 150);
+          ctx.stroke();
+          ctx.fillStyle = "#c5364a";
+          roundRect(ob.x, ob.y, ob.w, ob.h, 4);
+          ctx.fill();
+          ctx.fillStyle = "#f8e1b0";
+          ctx.font = "700 16px WenQuanYi Micro Hei, Droid Sans Fallback, sans-serif";
+          ctx.fillText("夜", ob.x + 14, ob.y + 36);
+          ctx.fillText("市", ob.x + 14, ob.y + 58);
+        }
+      });
+      coins.forEach((coin) => {
+        ctx.fillStyle = "#d23a48";
+        ctx.beginPath();
+        ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#f6d48a";
+        ctx.fillRect(coin.x - 2, coin.y - coin.r - 8, 4, 8);
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.arc(coin.x, coin.y - 4 + i * 7, 7, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      drawPlayer();
+    }
+
+    const stage = document.getElementById("stage");
+    stage.addEventListener("pointerdown", (e) => {
+      if (state !== "play") return;
+      if (e.target.closest(".mask")) return;
+      const rect = canvas.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      if (y > rect.height * 0.62) setSlide(true);
+      else jump();
+    });
+    stage.addEventListener("pointerup", () => setSlide(false));
+    stage.addEventListener("pointercancel", () => setSlide(false));
+    stage.addEventListener("pointerleave", () => { if (!slideHeld) return; });
+
+    const slideBtn = document.getElementById("slide");
+    slideBtn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      try { slideBtn.setPointerCapture(e.pointerId); } catch (err) {}
+      setSlide(true);
+    });
+    slideBtn.addEventListener("pointerup", () => setSlide(false));
+    slideBtn.addEventListener("pointercancel", () => setSlide(false));
+    document.getElementById("jump").addEventListener("pointerdown", (e) => { e.preventDefault(); jump(); });
+    window.addEventListener("pointerup", () => setSlide(false));
+    window.addEventListener("blur", () => setSlide(false));
+
+    window.addEventListener("keydown", (e) => {
+      if ([" ", "ArrowUp", "ArrowDown"].includes(e.key)) e.preventDefault();
+      if (e.key === " " || e.key === "ArrowUp") jump();
+      if (e.key === "ArrowDown") setSlide(true);
+    });
+    window.addEventListener("keyup", (e) => { if (e.key === "ArrowDown") setSlide(false); });
+
+    function frame(t) {
+      const dt = Math.min(0.033, last ? (t - last) / 1000 : 0.016);
+      last = t;
+      update(dt);
+      drawWorld();
+      requestAnimationFrame(frame);
+    }
+
+    loadBest();
+    drawWorld();
+    showMask("夜市冲刺", "沿着灯笼跑下去。跳跃越过木箱，按住滑行从红色横幅底下钻过去。糖葫芦能加分。纸灯只有三盏，撞上障碍就灭一盏。", "开跑", () => {
+      document.getElementById("mask").hidden = true;
+      reset();
+    });
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

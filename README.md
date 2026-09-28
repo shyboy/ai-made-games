@@ -6,7 +6,7 @@
 
 ## 仓库内的游戏
 
-以下 6 个 HTML 文件由杨老师提供，原作者署名为微信昵称 **朱斌**。收录时只将文件改名为各目录下的 `index.html`，未修改游戏内容。下载仓库后，也可以在电脑上直接打开对应文件。
+仓库里目前有 12 个可直接打开的 HTML 游戏。其中 6 个由杨老师提供，原作者署名为微信昵称 **朱斌**；收录时只将文件改名为各目录下的 `index.html`，未修改游戏内容。另外 6 个单文件小游戏署名为 **杨老师玩AI · AI 生成**。下载仓库后，也可以在电脑上直接打开对应文件。
 
 | 游戏 | 在线游玩 | 文件 |
 | --- | --- | --- |
@@ -16,6 +16,12 @@
 | 十一王国 · 诸侯争锋 | [开始游戏](https://shyboy.github.io/ai-made-games/games/eleven-kingdoms/) | [`games/eleven-kingdoms/index.html`](games/eleven-kingdoms/index.html) |
 | 星环防线 V3 · 超载舰队 | [开始游戏](https://shyboy.github.io/ai-made-games/games/star-ring-defense/) | [`games/star-ring-defense/index.html`](games/star-ring-defense/index.html) |
 | 星刃共鸣 V3 · 刀环乱斗 | [开始游戏](https://shyboy.github.io/ai-made-games/games/starblade-resonance/) | [`games/starblade-resonance/index.html`](games/starblade-resonance/index.html) |
+| 锦鲤消消 | [开始游戏](https://shyboy.github.io/ai-made-games/games/koi-match/) | [`games/koi-match/index.html`](games/koi-match/index.html) |
+| 夜市叠箱 | [开始游戏](https://shyboy.github.io/ai-made-games/games/night-crate/) | [`games/night-crate/index.html`](games/night-crate/index.html) |
+| 夜市冲刺 | [开始游戏](https://shyboy.github.io/ai-made-games/games/night-market-dash/) | [`games/night-market-dash/index.html`](games/night-market-dash/index.html) |
+| 灯会翻牌 | [开始游戏](https://shyboy.github.io/ai-made-games/games/lantern-memory/) | [`games/lantern-memory/index.html`](games/lantern-memory/index.html) |
+| 纸飞机防线 | [开始游戏](https://shyboy.github.io/ai-made-games/games/paper-plane-line/) | [`games/paper-plane-line/index.html`](games/paper-plane-line/index.html) |
+| 雨巷书摊 | [开始游戏](https://shyboy.github.io/ai-made-games/games/rain-bookstall/) | [`games/rain-bookstall/index.html`](games/rain-bookstall/index.html) |
 
 “回到客厅”内置原创测试游戏；导入其他 `.nes` 文件时，请使用自己有权使用的文件。它的内置模拟核心可离线运行，可选的 JSNES 标准核心需要联网加载。
 

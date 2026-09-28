@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 2 L14 13 L8 10 L2 13 Z' fill='%23f7fbff'/%3E%3C/svg%3E">
+  <meta name="description" content="纸飞机防线：驾驶纸飞机，挡住六波来袭的纸鹤。">
+  <title>纸飞机防线</title>
+  <style>
+    :root { color-scheme: dark; --ink: #f4f7fb; --muted: #d5e2f2; --gold: #ffe08a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "WenQuanYi Micro Hei", "Droid Sans Fallback", sans-serif;
+      color: var(--ink);
+      background: #16324d;
+    }
+    button { font: inherit; -webkit-tap-highlight-color: transparent; }
+    a { color: var(--gold); text-decoration: none; }
+    .wrap { width: min(480px, calc(100% - 16px)); margin: 0 auto; padding: 12px 0 22px; }
+    header { display: flex; justify-content: space-between; align-items: flex-end; }
+    .eyebrow { margin: 0; color: var(--gold); letter-spacing: .14em; font-size: .78rem; }
+    h1 { margin: 2px 0 8px; font-size: 1.55rem; }
+    .stage { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid #9fc0de; }
+    canvas { display: block; width: 100%; height: auto; background: #8ec6ea; touch-action: none; }
+    .hud {
+      position: absolute; top: 8px; left: 8px; right: 8px;
+      display: flex; justify-content: space-between; font-weight: 800;
+      color: #17324a; text-shadow: 0 1px 0 rgba(255,255,255,.4);
+      pointer-events: none;
+    }
+    .help, .credit { color: var(--muted); font-size: .85rem; line-height: 1.6; }
+    .keys { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .keys button { min-height: 48px; border: 0; border-radius: 14px; background: #245074; color: white; font-weight: 800; cursor: pointer; }
+    .mask { position: absolute; inset: 0; background: rgba(12, 32, 48, .55); display: grid; place-items: center; padding: 16px; }
+    .mask[hidden] { display: none; }
+    .card { width: min(380px, 100%); background: rgba(18, 42, 64, .92); border-radius: 18px; padding: 18px; }
+    .card h2 { margin: 0 0 8px; }
+    .card p { color: var(--muted); line-height: 1.7; margin: 0 0 12px; }
+    .card button { border: 0; background: var(--gold); color: #3a2a10; font-weight: 800; border-radius: 999px; padding: 10px 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">纸上射击</p>
+        <h1>纸飞机防线</h1>
+      </div>
+      <a href="../../index.html">返回目录</a>
+    </header>
+    <div class="stage" id="stage">
+      <canvas id="cv" width="480" height="720"></canvas>
+      <div class="hud"><span id="score">0 分</span><span id="wave">第 1 / 6 波</span><span id="lives">纸页 × 4</span></div>
+      <div class="mask" id="mask">
+        <div class="card">
+          <h2 id="maskTitle">纸飞机防线</h2>
+          <p id="maskText"></p>
+          <button type="button" id="maskBtn">起飞</button>
+        </div>
+      </div>
+    </div>
+    <div class="keys">
+      <button type="button" id="left">向左</button>
+      <button type="button" id="right">向右</button>
+    </div>
+    <p class="help">拖动飞机，或按住左右按钮 / 方向键移动。飞机自己扔纸片。别撞上来机，也别让它们从底线飞走。守完六波就收工。金色纸条会暂时加快投掷。</p>
+    <p class="credit">杨老师玩AI · AI 生成</p>
+  </div>
+  <script>
+    const W = 480, H = 720;
+    const WAVES = [
+      { small: 5, big: 0, weave: 0, gap: 0.9 },
+      { small: 6, big: 1, weave: 0, gap: 0.82 },
+      { small: 5, big: 1, weave: 2, gap: 0.76 },
+      { small: 6, big: 2, weave: 2, gap: 0.7 },
+      { small: 6, big: 2, weave: 3, gap: 0.66 },
+      { small: 7, big: 2, weave: 3, gap: 0.6 }
+    ];
+    const canvas = document.getElementById("cv");
+    const ctx = canvas.getContext("2d");
+    const player = { x: W / 2, y: H - 90, r: 16, inv: 0, rapid: 0 };
+    let bullets = [], enemies = [], shots = [], drops = [], floats = [];
+    let queue = [], wave = 0, spawnIn = 0, score = 0, lives = 4, best = 0;
+    let state = "ready", last = 0, fireIn = 0, calm = 0, keys = { left: false, right: false }, dragging = false;
+
+    function loadBest() {
+      try { best = +localStorage.getItem("aimg-plane-best") || 0; } catch (e) { best = 0; }
+    }
+    function saveBest() {
+      if (score <= best) return;
+      best = score;
+      try { localStorage.setItem("aimg-plane-best", String(best)); } catch (e) {}
+    }
+    function sync() {
+      document.getElementById("score").textContent = score + " 分";
+      document.getElementById("wave").textContent = "第 " + Math.min(wave + 1, 6) + " / 6 波";
+      document.getElementById("lives").textContent = "纸页 × " + lives;
+    }
+    function showMask(title, text, btn, fn) {
+      document.getElementById("maskTitle").textContent = title;
+      document.getElementById("maskText").textContent = text;
+      const b = document.getElementById("maskBtn");
+      b.textContent = btn;
+      b.onclick = fn;
+      document.getElementById("mask").hidden = false;
+    }
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    function beginWave(index) {
+      const spec = WAVES[index];
+      queue = [];
+      for (let i = 0; i < spec.small; i++) queue.push("small");
+      for (let i = 0; i < spec.big; i++) queue.push("big");
+      for (let i = 0; i < spec.weave; i++) queue.push("weave");
+      for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = queue[i]; queue[i] = queue[j]; queue[j] = tmp;
+      }
+      spawnIn = 0.45;
+      calm = 0.7;
+      sync();
+    }
+
+    function reset() {
+      player.x = W / 2; player.inv = 0; player.rapid = 0;
+      bullets = []; enemies = []; shots = []; drops = []; floats = [];
+      score = 0; lives = 4; wave = 0; fireIn = 0;
+      state = "play";
+      beginWave(0);
+    }
+
+    function spawnEnemy(kind) {
+      const base = { kind, x: rand(36, W - 36), y: -30, t: Math.random() * 6, shoot: rand(0.8, 1.6) };
+      if (kind === "small") enemies.push({ ...base, hp: 1, r: 16, vy: rand(70, 100), amp: 0, freq: 0, score: 100 });
+      else if (kind === "big") enemies.push({ ...base, hp: 3, r: 26, vy: rand(42, 62), amp: 18, freq: 1.4, score: 300 });
+      else enemies.push({ ...base, hp: 2, r: 18, vy: rand(78, 110), amp: 70, freq: 2.2, score: 180 });
+    }
+
+    function hurt() {
+      if (player.inv > 0 || state !== "play") return;
+      lives--;
+      player.inv = 1.15;
+      sync();
+      if (lives <= 0) {
+        state = "over";
+        saveBest();
+        showMask("防线被啄穿了", "守到第 " + (wave + 1) + " 波，得分 " + score + "。最佳 " + best + " 分。", "再折一架", () => {
+          document.getElementById("mask").hidden = true;
+          reset();
+        });
+      }
+    }
+
+    function update(dt) {
+      if (state !== "play") return;
+      calm = Math.max(0, calm - dt);
+      player.inv = Math.max(0, player.inv - dt);
+      player.rapid = Math.max(0, player.rapid - dt);
+      if (!dragging) {
+        if (keys.left) player.x -= 260 * dt;
+        if (keys.right) player.x += 260 * dt;
+      }
+      player.x = Math.max(28, Math.min(W - 28, player.x));
+      fireIn -= dt;
+      const gap = player.rapid > 0 ? 0.09 : 0.22;
+      if (fireIn <= 0) {
+        fireIn = gap;
+        bullets.push({ x: player.x, y: player.y - 18, vy: -460, r: 4 });
+      }
+      bullets.forEach((b) => { b.y += b.vy * dt; });
+      bullets = bullets.filter((b) => b.y > -10);
+
+      if (queue.length && calm <= 0) {
+        spawnIn -= dt;
+        if (spawnIn <= 0) {
+          spawnEnemy(queue.shift());
+          spawnIn = WAVES[wave].gap;
+        }
+      }
+
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const e = enemies[i];
+        e.t += dt;
+        e.y += e.vy * dt;
+        if (e.amp) e.x += Math.sin(e.t * e.freq) * e.amp * dt;
+        e.x = Math.max(e.r, Math.min(W - e.r, e.x));
+        if (e.kind === "big") {
+          e.shoot -= dt;
+          if (e.shoot <= 0 && e.y > 20 && e.y < H * 0.62) {
+            e.shoot = 2.05;
+            shots.push({ x: e.x, y: e.y + e.r, vy: 125, r: 5 });
+          }
+        }
+        if (e.y > H + 24) {
+          enemies.splice(i, 1);
+          hurt();
+          continue;
+        }
+        const dx = e.x - player.x, dy = e.y - player.y;
+        if (dx * dx + dy * dy < (e.r + player.r) * (e.r + player.r)) {
+          enemies.splice(i, 1);
+          hurt();
+        }
+      }
+
+      for (let i = shots.length - 1; i >= 0; i--) {
+        const s = shots[i];
+        s.y += s.vy * dt;
+        const dx = s.x - player.x, dy = s.y - player.y;
+        if (dx * dx + dy * dy < (s.r + player.r) * (s.r + player.r)) {
+          shots.splice(i, 1);
+          hurt();
+          continue;
+        }
+        if (s.y > H + 10) shots.splice(i, 1);
+      }
+
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+        let hit = false;
+        for (let j = enemies.length - 1; j >= 0; j--) {
+          const e = enemies[j];
+          const dx = b.x - e.x, dy = b.y - e.y;
+          if (dx * dx + dy * dy < (b.r + e.r) * (b.r + e.r)) {
+            e.hp--;
+            hit = true;
+            if (e.hp <= 0) {
+              score += e.score;
+              floats.push({ x: e.x, y: e.y, text: "+" + e.score, life: 0.6 });
+              if (e.kind !== "small" && Math.random() < 0.45) drops.push({ x: e.x, y: e.y, vy: 70, r: 10 });
+              enemies.splice(j, 1);
+              sync();
+            }
+            break;
+          }
+        }
+        if (hit) bullets.splice(i, 1);
+      }
+
+      for (let i = drops.length - 1; i >= 0; i--) {
+        const d = drops[i];
+        d.y += d.vy * dt;
+        const dx = d.x - player.x, dy = d.y - player.y;
+        if (dx * dx + dy * dy < (d.r + player.r + 6) * (d.r + player.r + 6)) {
+          player.rapid = 3.6;
+          drops.splice(i, 1);
+          continue;
+        }
+        if (d.y > H + 10) drops.splice(i, 1);
+      }
+      floats.forEach((f) => { f.y -= 30 * dt; f.life -= dt; });
+      floats = floats.filter((f) => f.life > 0);
+
+      if (state === "play" && !queue.length && !enemies.length && calm <= 0) {
+        if (wave >= WAVES.length - 1) {
+          state = "win";
+          saveBest();
+          showMask("六波都折返了", "纸飞机守住了课桌边缘，得分 " + score + "。最佳 " + best + " 分。", "再飞一次", () => {
+            document.getElementById("mask").hidden = true;
+            reset();
+          });
+        } else {
+          wave++;
+          shots = [];
+          beginWave(wave);
+        }
+      }
+    }
+
+    function plane(x, y, scale, color, nose) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(0, -18);
+      ctx.lineTo(16, 12);
+      ctx.lineTo(0, 4);
+      ctx.lineTo(-16, 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "rgba(30,50,70,.35)";
+      ctx.beginPath();
+      ctx.moveTo(0, -18);
+      ctx.lineTo(0, 8);
+      ctx.moveTo(-16, 12);
+      ctx.lineTo(16, 12);
+      ctx.stroke();
+      if (nose) {
+        ctx.fillStyle = "#e23d4a";
+        ctx.beginPath();
+        ctx.arc(0, -6, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function draw() {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#d7eefe");
+      g.addColorStop(1, "#8ec5ea");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = "rgba(255,255,255,.35)";
+      ctx.lineWidth = 2;
+      for (let y = 40; y < H; y += 36) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "rgba(255,255,255,.8)";
+      ctx.beginPath();
+      ctx.ellipse(90, 80, 50, 18, 0, 0, Math.PI * 2);
+      ctx.ellipse(380, 150, 60, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      drops.forEach((d) => {
+        ctx.fillStyle = "#f0c14a";
+        ctx.fillRect(d.x - 8, d.y - 6, 16, 12);
+      });
+      bullets.forEach((b) => {
+        ctx.fillStyle = "#23415f";
+        ctx.fillRect(b.x - 2, b.y - 8, 4, 12);
+      });
+      shots.forEach((s) => {
+        ctx.fillStyle = "#c5364a";
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y + 8);
+        ctx.lineTo(s.x + 5, s.y - 6);
+        ctx.lineTo(s.x - 5, s.y - 6);
+        ctx.fill();
+      });
+      enemies.forEach((e) => {
+        if (e.kind === "weave") plane(e.x, e.y, 0.9, "#f4f7fb", true);
+        else if (e.kind === "big") plane(e.x, e.y, 1.45, "#f7e2c4", true);
+        else plane(e.x, e.y, 0.85, "#fff", false);
+      });
+      if (!(player.inv > 0 && Math.floor(player.inv * 14) % 2 === 0)) {
+        plane(player.x, player.y, 1.15, player.rapid > 0 ? "#fff6cc" : "#f7fbff", false);
+      }
+      ctx.fillStyle = "#17324a";
+      ctx.font = "700 16px WenQuanYi Micro Hei, Droid Sans Fallback, sans-serif";
+      ctx.textAlign = "center";
+      floats.forEach((f) => ctx.fillText(f.text, f.x, f.y));
+      if (calm > 0 && state === "play") {
+        ctx.font = "700 28px WenQuanYi Micro Hei, Droid Sans Fallback, sans-serif";
+        ctx.fillText("第 " + (wave + 1) + " 波", W / 2, H / 2);
+      }
+      ctx.textAlign = "left";
+    }
+
+    function pointerX(e) {
+      const rect = canvas.getBoundingClientRect();
+      return (e.clientX - rect.left) * (W / rect.width);
+    }
+    canvas.addEventListener("pointerdown", (e) => {
+      if (state !== "play") return;
+      dragging = true;
+      canvas.setPointerCapture(e.pointerId);
+      player.x = pointerX(e);
+    });
+    canvas.addEventListener("pointermove", (e) => { if (dragging) player.x = pointerX(e); });
+    canvas.addEventListener("pointerup", () => { dragging = false; });
+    canvas.addEventListener("pointercancel", () => { dragging = false; });
+
+    function bindHold(id, key) {
+      const el = document.getElementById(id);
+      const on = (e) => { e.preventDefault(); keys[key] = true; };
+      const off = () => { keys[key] = false; };
+      el.addEventListener("pointerdown", on);
+      el.addEventListener("pointerup", off);
+      el.addEventListener("pointercancel", off);
+      el.addEventListener("pointerleave", off);
+    }
+    bindHold("left", "left");
+    bindHold("right", "right");
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = true;
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = true;
+      if (["ArrowLeft", "ArrowRight", " "].includes(e.key)) e.preventDefault();
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = false;
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = false;
+    });
+
+    function frame(t) {
+      const dt = Math.min(0.033, last ? (t - last) / 1000 : 0.016);
+      last = t;
+      update(dt);
+      draw();
+      requestAnimationFrame(frame);
+    }
+
+    loadBest();
+    sync();
+    draw();
+    showMask("纸飞机防线", "纸飞机守在底边，会自己朝前扔纸片。拖动或按左右移动，躲开红纸镖，别让来机碰到你或飞出底线。金色纸条能让你暂时扔得更快。守住六波即胜。", "起飞", () => {
+      document.getElementById("mask").hidden = true;
+      reset();
+    });
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
