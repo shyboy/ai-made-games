@@ -43,10 +43,14 @@
 | 起源 Origin | [DFarm6](https://github.com/DFarm6) | [开始游戏](https://dfarm6.github.io/origin-16bit-arpg/) | [原仓库](https://github.com/DFarm6/origin-16bit-arpg) |
 | Parti 联机小游戏合集 | [wheelg](https://www.v2ex.com/member/wheelg) | [打开游戏平台](https://parti.linkai.work/) | [作者发布帖](https://edge.v2ex.com/t/1227945) |
 | 天际5（需本地运行） | [zexadev](https://github.com/zexadev) | [下载及运行说明](https://github.com/zexadev/tianjie5#快速开始) | [原仓库](https://github.com/zexadev/tianjie5) |
+| 归零协议（只带三件现代物品，从崇祯元年或道光年间走出不同结局） | [ddter](https://www.v2ex.com/member/ddter) | [开始游戏](https://zero.flyabc.fun/) | [作者发布帖](https://www.v2ex.com/t/1224184) |
+| 晴湾防线无尽版（终局地图上的无限波次，按守住的波数排行） | [iiduce](https://www.v2ex.com/member/iiduce) | [开始游戏](https://tz100.com/zh/games/sunharbor-endless) | [作者发布帖](https://www.v2ex.com/t/1243393) |
+| 棱镜交火（三分钟竞技场射击，在掩体间换位并切换枪械） | [iiduce](https://www.v2ex.com/member/iiduce) | [开始游戏](https://tz100.com/zh/games/prism-arena) | [作者发布帖](https://www.v2ex.com/t/1243393) |
+| 象棋（与分级电脑对弈，或开房和好友下） | [iiduce](https://www.v2ex.com/member/iiduce) | [开始游戏](https://tz100.com/zh/games/xiangqi) | [作者发布帖](https://www.v2ex.com/t/1243393) |
 
 《穿越火线》《QQ 飞车》《黑神话：悟空》《天际5》的相关条目是非官方同人或致敬作品，与原游戏厂商无关。
 
-《修仙掌门生涯》的作者提示首次加载可能较慢。《天际5》目前需要按原仓库说明在本地运行，尚无已核实的在线试玩地址。以上新链接于 2026-09-28 检查可访问；游戏内容及后续可用性以原作者网站为准。
+《修仙掌门生涯》的作者提示首次加载可能较慢。《天际5》目前需要按原仓库说明在本地运行，尚无已核实的在线试玩地址。《归零协议》是单文件文字局，一局大约二三十分钟。《晴湾防线无尽版》《棱镜交火》《象棋》来自同一作者的 AI 小游戏站，无尽版比剧情版更难。以上链接于 2026-09-28 检查可访问；游戏内容及后续可用性以原作者网站为准。
 
 ## 署名与使用
 
