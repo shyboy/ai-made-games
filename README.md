@@ -1,8 +1,10 @@
 # AI 游戏收录
 
-收录 AI 参与制作的网页版和单机版游戏，按玩法分组，方便找想玩的类型。当前共有 **50 个游戏条目**：13 个 HTML 游戏保存在本仓库，可以在线玩或下载；37 个外部条目提供原作者的试玩或获取地址。
+收录 AI 参与制作的网页版和单机版游戏，按玩法分组，方便找想玩的类型。当前共有 **51 个游戏条目**：13 个 HTML 游戏保存在本仓库，可以在线玩或下载；38 个外部条目提供原作者的试玩或获取地址。
 
 **2026-11-11 更新**：新增 12 款，新增条目均于当日核验可访问。本轮核心是 Claude Opus 5.5 的四款作品（Simon Willison，2026-10-28 称十月为氛围编程做游戏的拐点：一句“Make it a LOT more fun”真的能让游戏变好玩），以及 10 月中旬后走红的 PokéBonk（上线不久玩家破百万）、V2EX 10 月底至 11 月初的中文新作（LLM 塔防、大航海群像志、AI 代打 SLG、GLM-5.3 刹车小游戏）和两款联机新作。
+
+**2026-11-15 更新**：新增 Saltline（Claude Fable 5.2 一次生成的 3D 第一人称射击），当日核验可访问。
 
 **[打开可视化游戏目录](https://shyboy.github.io/ai-made-games/)**
 
@@ -83,6 +85,7 @@
 | PokéBonk（宝可梦 + 3D 割草生存同人，AI 做美术与音乐，上线不久玩家破百万，含简体中文） | Charcher | [开始游戏](https://pokebonk.top) | [作者发布帖](https://www.v2ex.com/t/1251268) |
 | 刹车小游戏（智谱 GLM-5.3 一把成型，手机游玩更佳） | ha0719 | [开始游戏](https://t.baozangapp.com/brake-test/) | [作者发布帖](https://www.v2ex.com/t/1247818) |
 | PumpkinLab · 南瓜实验室（11 岁孩子口述 + Claude Code 做的万圣节打南瓜，英 / 荷双语） | [roytomeij](https://github.com/roytomeij) | [开始游戏](https://pumpkinlab.tomeij.net/) | [原仓库](https://github.com/roytomeij/pumpkinlab) |
+| Saltline（Claude Fable 5.2 一次生成的 3D 第一人称射击，雨夜港口切断三处中继后登船撤离，英文界面） | Felix Rieseberg | [开始游戏](https://claude.ai/artifact/BGY1SztrAYcJQHSsnHHGmp) | [相关报道](https://www.talkesport.com/editorials/claude-fable-5-2-games-ai-game-development/) |
 
 ### 角色扮演与文字冒险
 
@@ -122,7 +125,7 @@
 - **语言与时长**：《100 Games》《LittleJS Arcade》《EPOCH》和 Spy Hunter 为英文界面；《Clauding》界面英文、帮助含中文，《Clawd Arcade》为中英双语，《hollowlullaby》为中文作品集。《归零协议》单局约二三十分钟。新增的 Battle Drones、Emberwick、Tree Appreciator、Quarter Sun Cove、Eyrie、Fly 均为英文界面；《PumpkinLab》为英 / 荷双语；《PokéBonk》含简体中文。
 - **版本与同人**：《晴湾防线无尽版》《棱镜交火》《象棋》与《晴湾防线》同属 iiduce 的游戏站，无尽版难度更高。《穿越火线》《QQ 飞车》《黑神话：悟空》《天际5》《Spy Hunter》《PokéBonk》相关条目为非官方同人或致敬作品，与原游戏厂商无关。
 
-以上外部链接中，新增 12 条于 2026-11-11 检查可访问；其余旧条目上次检查为 2026-09-28，本次未逐条复核。游戏内容及后续可用性以原作者网站为准。
+以上外部链接中，新增 12 条于 2026-11-11 检查可访问；Saltline 于 2026-11-15 新增并当日核验可访问；其余旧条目上次检查为 2026-09-28，本次未逐条复核。游戏内容及后续可用性以原作者网站为准。
 
 ## 署名与使用
 
