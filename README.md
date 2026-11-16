@@ -1,6 +1,6 @@
 # AI 游戏收录
 
-收录 AI 参与制作的网页版和单机版游戏，按玩法分组，方便找想玩的类型。当前共有 **52 个游戏条目**：13 个 HTML 游戏保存在本仓库，可以在线玩或下载；39 个外部条目提供原作者的试玩或获取地址。
+收录 AI 参与制作的网页版和单机版游戏，按玩法分组，方便找想玩的类型。当前共有 **56 个游戏条目**：13 个 HTML 游戏保存在本仓库，可以在线玩或下载；43 个外部条目提供原作者的试玩或获取地址。
 
 **2026-11-11 更新**：新增 12 款，新增条目均于当日核验可访问。本轮核心是 Claude Opus 5.5 的四款作品（Simon Willison，2026-10-28 称十月为氛围编程做游戏的拐点：一句“Make it a LOT more fun”真的能让游戏变好玩），以及 10 月中旬后走红的 PokéBonk（上线不久玩家破百万）、V2EX 10 月底至 11 月初的中文新作（LLM 塔防、大航海群像志、AI 代打 SLG、GLM-5.3 刹车小游戏）和两款联机新作。
 
@@ -86,6 +86,9 @@
 | 刹车小游戏（智谱 GLM-5.3 一把成型，手机游玩更佳） | ha0719 | [开始游戏](https://t.baozangapp.com/brake-test/) | [作者发布帖](https://www.v2ex.com/t/1247818) |
 | PumpkinLab · 南瓜实验室（11 岁孩子口述 + Claude Code 做的万圣节打南瓜，英 / 荷双语） | [roytomeij](https://github.com/roytomeij) | [开始游戏](https://pumpkinlab.tomeij.net/) | [原仓库](https://github.com/roytomeij/pumpkinlab) |
 | Saltline（Claude Fable 5.2 一次生成的 3D 第一人称射击，雨夜港口切断三处中继后登船撤离，英文界面） | Felix Rieseberg | [开始游戏](https://claude.ai/artifact/BGY1SztrAYcJQHSsnHHGmp) | [相关报道](https://www.talkesport.com/editorials/claude-fable-5-2-games-ai-game-development/) |
+| Aiden's Revenge（Claude Code + Fable 5.2 做的横版格斗，12 关、18 角色、4 人同玩，侄子手绘稿改编，英文界面） | Lex Toumbourou | [开始游戏](https://aidens-revenge.pages.dev/) | [作者文章](https://notesbylex.com/fable-5-2-one-shotted-my-nephews-dream-game) |
+| Turbo Tails（Claude Fable 5.2 做的 3D 卡丁竞速，6 车手、漂移与道具，3 条赛道大奖赛，英文界面） | Peter Yang | [开始游戏](https://turbo-tails.vercel.app/) | [相关报道](https://www.ai-primer.com/creative/stories/fable-kart-racer) |
+| Agent of Somebody（Claude Fable 5.2 做的第三人称地牢闯关，伦敦/巴黎/纽约三关打 Boss，英文界面） | Vlad Cealicu | [开始游戏](https://www.anchorterminal.com/games/agent-of-somebody/) | [作者文章](https://www.anchorterminal.com/blog/how-we-built-agent-of-somebody) |
 | 借风计划 · 桌面飞机大战（把真小车或纸飞机放上屏幕当战机，支持手机扫码座舱、陀螺仪体感与吹气清屏，MIT 开源） | [杨老师玩AI](https://github.com/shyboy) | [开始游戏](https://shyboy.github.io/tabletop-sky-striker/) | [原仓库](https://github.com/shyboy/tabletop-sky-striker) |
 
 ### 角色扮演与文字冒险
@@ -105,6 +108,7 @@
 | Color Tiles | [winterscott999](https://www.v2ex.com/member/winterscott999) | [开始游戏](https://colortilesgame.net/) | [作者发布帖](https://www.v2ex.com/t/1228585) |
 | Clauding · 动词猎人（抓 Claude Code 转圈动词，零依赖，MIT；界面英文，帮助含中文） | [BIGBALLON](https://github.com/BIGBALLON) | [开始游戏](https://bigballon.github.io/clauding_hacker/) | [原仓库](https://github.com/BIGBALLON/clauding_hacker) |
 | Tree Appreciator · 赏树（Claude Opus 5.5 一次成型，3D 找茬：两棵同源树找三处不同，英文界面） | Simon Willison | [开始游戏](https://tools.simonwillison.net/tree-appreciator) | [作者文章](https://simonw.substack.com/p/the-october-inflection-point-for) |
+| Portals（Claude Fable 5.2 做的 450+ 程序化 3D 世界漫游，无目标无胜负的体验型作品，英文界面） | Ethan Mollick | [开始游戏](https://portals-endless-worlds.netlify.app/) | [相关报道](https://explainx.ai/blog/top-20-things-built-with-claude-fable-5-2-matt-shumer-anthropic-mollick-2026) |
 
 ### 联机与游戏合集
 
@@ -123,7 +127,7 @@
 
 - **需要本地运行**：《天际5》按原仓库说明启动，尚无已核实的在线试玩地址；《街机口袋》需 Node.js 20 或更新版本，运行 `node server.mjs`。《LLM 塔防》Web 版加载较慢，作者建议以下载客户端为主。
 - **加载与访问**：《修仙掌门生涯》首次加载可能较慢；两则 Spy Hunter 试玩偶发人机验证。《AI 替我打的策略 SLG》需 Google 或 GitHub 登录。
-- **语言与时长**：《100 Games》《LittleJS Arcade》《EPOCH》和 Spy Hunter 为英文界面；《Clauding》界面英文、帮助含中文，《Clawd Arcade》为中英双语，《hollowlullaby》为中文作品集。《归零协议》单局约二三十分钟。新增的 Battle Drones、Emberwick、Tree Appreciator、Quarter Sun Cove、Eyrie、Fly 均为英文界面；《PumpkinLab》为英 / 荷双语；《PokéBonk》含简体中文。
+- **语言与时长**：《100 Games》《LittleJS Arcade》《EPOCH》和 Spy Hunter 为英文界面；《Clauding》界面英文、帮助含中文，《Clawd Arcade》为中英双语，《hollowlullaby》为中文作品集。《归零协议》单局约二三十分钟。新增的 Battle Drones、Emberwick、Tree Appreciator、Quarter Sun Cove、Eyrie、Fly 均为英文界面；2026-11-16 新增的 4 款亦为英文界面；《PumpkinLab》为英 / 荷双语；《PokéBonk》含简体中文。
 - **版本与同人**：《晴湾防线无尽版》《棱镜交火》《象棋》与《晴湾防线》同属 iiduce 的游戏站，无尽版难度更高。《穿越火线》《QQ 飞车》《黑神话：悟空》《天际5》《Spy Hunter》《PokéBonk》相关条目为非官方同人或致敬作品，与原游戏厂商无关。
 
 以上外部链接中，新增 12 条于 2026-11-11 检查可访问；Saltline 与《借风计划 · 桌面飞机大战》于 2026-11-15 新增并当日核验可访问；其余旧条目上次检查为 2026-09-28，本次未逐条复核。游戏内容及后续可用性以原作者网站为准。
